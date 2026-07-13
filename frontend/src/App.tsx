@@ -1,6 +1,8 @@
-import { useEffect, useRef, useState } from "react";
+import { useEffect, useMemo, useRef, useState } from "react";
 import { createTrip, openTripStream } from "./api";
 import AgentChat from "./components/AgentChat";
+import ItineraryPanel from "./components/ItineraryPanel";
+import MapView from "./components/MapView";
 import TripForm from "./components/TripForm";
 import type { AgentMsg, Itinerary, Trip, TripInput } from "./types";
 
@@ -10,16 +12,24 @@ export default function App() {
   const [status, setStatus] = useState("idle");
   const [itinerary, setItinerary] = useState<Itinerary | null>(null);
   const [error, setError] = useState("");
+  const [selectedDay, setSelectedDay] = useState(0);
   const closeRef = useRef<(() => void) | null>(null);
 
   useEffect(() => () => closeRef.current?.(), []);
 
   const planning = status === "pending" || status === "planning";
 
+  // Şəhərin mərkəzi ilk system mesajının payload-ından gəlir
+  const cityCenter = useMemo<[number, number] | null>(() => {
+    const m = messages.find((x) => x.agent === "system" && x.payload && "lat" in x.payload);
+    return m ? [m.payload!.lat as number, m.payload!.lon as number] : null;
+  }, [messages]);
+
   const start = async (input: TripInput) => {
     setError("");
     setMessages([]);
     setItinerary(null);
+    setSelectedDay(0);
     try {
       const t = await createTrip(input);
       setTrip(t);
@@ -89,35 +99,21 @@ export default function App() {
                 </span>
               </div>
 
-              {itinerary ? (
-                <div className="space-y-3">
-                  {itinerary.days.map((d) => (
-                    <div key={d.day} className="rounded-lg border border-line bg-card p-4">
-                      <h3 className="mb-2 font-display font-semibold">
-                        Gün {d.day}{" "}
-                        <span className="font-mono text-xs font-normal text-ink-soft">{d.date}</span>
-                      </h3>
-                      <ul className="space-y-1.5">
-                        {d.items.map((i) => (
-                          <li key={i.name} className="flex items-baseline gap-3 text-sm">
-                            <span className="font-mono text-xs text-ink-soft">{i.start_time}</span>
-                            <span>{i.name}</span>
-                            <span className="ml-auto font-mono text-xs text-ink-soft">
-                              {i.est_cost} {trip.currency}
-                            </span>
-                          </li>
-                        ))}
-                      </ul>
-                    </div>
-                  ))}
-                  <p className="text-right font-mono text-sm">
-                    Ümumi: <strong>{itinerary.total_cost} {trip.currency}</strong>
-                  </p>
-                </div>
+              {cityCenter ? (
+                <MapView center={cityCenter} itinerary={itinerary} selectedDay={selectedDay} />
               ) : (
                 <div className="flex h-64 items-center justify-center rounded-lg border border-dashed border-line text-sm text-ink-soft">
                   {planning ? "Agentlər marşrutu müzakirə edir..." : "Marşrut hazırlanmadı."}
                 </div>
+              )}
+
+              {itinerary && (
+                <ItineraryPanel
+                  itinerary={itinerary}
+                  currency={trip.currency}
+                  selectedDay={selectedDay}
+                  onSelectDay={setSelectedDay}
+                />
               )}
             </div>
           )}

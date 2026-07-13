@@ -84,9 +84,11 @@ async def _run(session: AsyncSession, trip: Trip) -> None:
     trip_id = trip.id
     num_days = (trip.end_date - trip.start_date).days + 1
     await set_status(session, trip, "planning")
+    city_coords = await geocode(trip.city)
     await emit(
         session, trip_id, "system", 0, "info",
         f"{trip.city} üçün {num_days} günlük plan hazırlanır — 4 agent işə başlayır.",
+        {"lat": city_coords[0], "lon": city_coords[1]} if city_coords else None,
     )
 
     # Raund 0: Interest Agent ilkin təklif

@@ -16,7 +16,7 @@ _lock = asyncio.Lock()
 _last_request = 0.0
 
 
-async def geocode(name: str, city: str) -> tuple[float, float] | None:
+async def geocode(name: str, city: str = "") -> tuple[float, float] | None:
     """Yerin (lat, lon) koordinatını qaytarır; tapılmasa None. Nəticələr cache-lənir."""
     global _last_request
     key = f"{name}|{city}".lower().strip()
@@ -33,7 +33,7 @@ async def geocode(name: str, city: str) -> tuple[float, float] | None:
             async with httpx.AsyncClient(timeout=15) as client:
                 resp = await client.get(
                     NOMINATIM_URL,
-                    params={"q": f"{name}, {city}", "format": "json", "limit": 1},
+                    params={"q": f"{name}, {city}" if city else name, "format": "json", "limit": 1},
                     headers={"User-Agent": USER_AGENT},
                 )
             results = resp.json() if resp.status_code == 200 else []
