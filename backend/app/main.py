@@ -1,11 +1,12 @@
 import logging
 from contextlib import asynccontextmanager
 
-from fastapi import FastAPI
+from fastapi import FastAPI, HTTPException
 from fastapi.middleware.cors import CORSMiddleware
 from sqlalchemy import text
 
 from .db import engine, init_db
+from .llm.client import LLMError, call_llm
 
 logging.basicConfig(level=logging.INFO, format="%(asctime)s %(name)s %(levelname)s %(message)s")
 logger = logging.getLogger("voyagent")
@@ -33,3 +34,22 @@ async def health():
     async with engine.connect() as conn:
         await conn.execute(text("SELECT 1"))
     return {"status": "ok"}
+
+
+@app.get("/debug/llm")
+async def debug_llm():
+    """LLM provider zəncirini yoxlamaq üçün minimal çağırış."""
+    try:
+        result = await call_llm(
+            [{"role": "user", "content": 'Cavab yalnız bu JSON olsun: {"ok": true}'}],
+            max_tokens=20,
+            temperature=0,
+        )
+    except (LLMError, Exception) as e:
+        raise HTTPException(status_code=502, detail=f"Hər iki provider uğursuz: {e}")
+    return {
+        "content": result.content,
+        "provider": result.provider,
+        "model": result.model,
+        "fallback_reason": result.fallback_reason,
+    }
