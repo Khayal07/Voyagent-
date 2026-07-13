@@ -1,0 +1,46 @@
+- generic [ref=e3]:
+  - banner [ref=e4]:
+    - generic [ref=e5]:
+      - heading "Voyagent." [level=1] [ref=e6]
+      - paragraph [ref=e7]: 4 AGENT · 1 MARŞRUT
+  - main [ref=e8]:
+    - generic [ref=e10]:
+      - heading "Hara gedirik?" [level=2] [ref=e11]
+      - paragraph [ref=e12]: Detalları ver — dörd agent sənin üçün ən yaxşı marşrutu müzakirə etsin.
+      - generic [ref=e13]:
+        - generic [ref=e14]:
+          - generic [ref=e15]: Şəhər
+          - textbox "Şəhər" [ref=e16]:
+            - /placeholder: məs. Roma
+        - generic [ref=e17]:
+          - generic [ref=e18]: Başlama
+          - textbox "Başlama" [ref=e19]
+        - generic [ref=e20]:
+          - generic [ref=e21]: Bitmə
+          - textbox "Bitmə" [ref=e22]
+        - generic [ref=e23]:
+          - generic [ref=e24]: Büdcə
+          - generic [ref=e25]:
+            - spinbutton "Büdcə" [ref=e26]
+            - combobox "Valyuta" [ref=e27]:
+              - option "USD" [selected]
+              - option "EUR"
+              - option "AZN"
+        - generic [ref=e28]:
+          - generic [ref=e29]: Nəfər
+          - spinbutton "Nəfər" [ref=e30]: "2"
+        - generic [ref=e31]:
+          - generic [ref=e32]: Maraqlar
+          - generic [ref=e33]:
+            - button "tarix" [ref=e34]
+            - button "təbiət" [ref=e35]
+            - button "yemək" [ref=e36]
+            - button "gecə həyatı" [ref=e37]
+            - button "incəsənət" [ref=e38]
+            - button "alış-veriş" [ref=e39]
+      - button "Marşrutu planla" [ref=e40]
+    - complementary [ref=e42]:
+      - generic [ref=e43]:
+        - generic [ref=e44]: CANLI DANIŞIQ
+        - generic [ref=e45]: hazır
+      - paragraph [ref=e48]: Formu doldur — agentlərin danışığı burada canlı axacaq.

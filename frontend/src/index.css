@@ -1,0 +1,45 @@
+@import "tailwindcss";
+@import "leaflet/dist/leaflet.css";
+
+@theme {
+  --color-ink: #0e2e33;
+  --color-ink-soft: #33565c;
+  --color-mist: #ecf1ee;
+  --color-card: #fbfdfc;
+  --color-line: #c9d6d1;
+  --color-route: #e4572e;
+  --color-route-deep: #c74522;
+  --color-agent-interest: #7c5cbf;
+  --color-agent-budget: #2e933c;
+  --color-agent-logistics: #d98e04;
+  --color-agent-planner: #2274a5;
+  --color-agent-system: #6b7a77;
+
+  --font-display: "Bricolage Grotesque", sans-serif;
+  --font-body: "Archivo", sans-serif;
+  --font-mono: "IBM Plex Mono", monospace;
+}
+
+body {
+  @apply bg-mist text-ink font-body antialiased;
+}
+
+/* Dispatch log-un waypoint-lərini birləşdirən qırıq marşrut xətti */
+.route-thread {
+  border-left: 2px dashed var(--color-line);
+}
+
+@keyframes pulse-dot {
+  0%, 100% { opacity: 1; transform: scale(1); }
+  50% { opacity: 0.4; transform: scale(0.75); }
+}
+
+.typing-dot {
+  animation: pulse-dot 1.2s ease-in-out infinite;
+}
+.typing-dot:nth-child(2) { animation-delay: 0.2s; }
+.typing-dot:nth-child(3) { animation-delay: 0.4s; }
+
+@media (prefers-reduced-motion: reduce) {
+  .typing-dot { animation: none; }
+}
