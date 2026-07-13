@@ -1,6 +1,6 @@
 import L from "leaflet";
 import { useEffect, useMemo } from "react";
-import { MapContainer, Marker, Polyline, Popup, TileLayer, useMap } from "react-leaflet";
+import { MapContainer, Marker, Polyline, Popup, TileLayer, Tooltip, useMap } from "react-leaflet";
 import type { Itinerary } from "../types";
 
 export const DAY_COLORS = ["#e4572e", "#2274a5", "#2e933c", "#7c5cbf", "#d98e04"];
@@ -38,9 +38,10 @@ interface Props {
   center: [number, number];
   itinerary: Itinerary | null;
   selectedDay: number; // 0 = bütün günlər
+  currency: string;
 }
 
-export default function MapView({ center, itinerary, selectedDay }: Props) {
+export default function MapView({ center, itinerary, selectedDay, currency }: Props) {
   const days = itinerary?.days ?? [];
 
   const focusPoints = useMemo<[number, number][]>(() => {
@@ -76,10 +77,15 @@ export default function MapView({ center, itinerary, selectedDay }: Props) {
                     position={[i.lat!, i.lon!]}
                     icon={numberIcon(dimmed ? "#9fb0ab" : color, idx + 1)}
                   >
+                    <Tooltip direction="top" offset={[0, -26]} opacity={0.95}>
+                      <span style={{ font: "500 12px Archivo, sans-serif" }}>{i.name}</span>
+                    </Tooltip>
                     <Popup>
                       <strong>{i.name}</strong>
                       <br />
-                      Gün {d.day} · {i.start_time ?? ""} · {i.est_cost} adambaşı
+                      Gün {d.day} · {i.start_time ?? "—"} başlayır
+                      <br />
+                      {i.est_cost} {currency} adambaşı · ~{i.duration_min} dəq
                     </Popup>
                   </Marker>
                 ))}

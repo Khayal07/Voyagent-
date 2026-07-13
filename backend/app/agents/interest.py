@@ -11,6 +11,11 @@ VALID_CATEGORIES = {"history", "nature", "food", "nightlife", "art", "shopping",
 def _normalize_item(raw: dict) -> dict | None:
     try:
         cat = str(raw.get("category", "other")).lower()
+        # LLM-in təxmini koordinatı ayrıca saxlanılır — Nominatim tapa bilməyəndə fallback olur
+        try:
+            llm_lat, llm_lon = float(raw["lat"]), float(raw["lon"])
+        except (KeyError, TypeError, ValueError):
+            llm_lat = llm_lon = None
         return {
             "name": str(raw["name"]).strip()[:120],
             "category": cat if cat in VALID_CATEGORIES else "other",
@@ -18,6 +23,8 @@ def _normalize_item(raw: dict) -> dict | None:
             "duration_min": min(600, max(15, int(raw.get("duration_min", 90)))),
             "lat": None,
             "lon": None,
+            "llm_lat": llm_lat,
+            "llm_lon": llm_lon,
         }
     except (KeyError, TypeError, ValueError):
         return None
@@ -38,7 +45,7 @@ async def propose(trip: Trip, num_days: int) -> tuple[str, list[dict], LLMResult
     data, llm = await ask_json(
         prompts.INTEREST_SYSTEM,
         prompts.interest_propose(trip.city, num_days, list(trip.interests or []), trip.travelers, trip.currency),
-        max_tokens=1200,
+        max_tokens=1500,
     )
     say = str(data.get("say", "Təkliflərim hazırdır.")).strip()
     return say, normalize_days(data.get("days", []), num_days), llm

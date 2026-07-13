@@ -100,7 +100,12 @@ export default function App() {
               </div>
 
               {cityCenter ? (
-                <MapView center={cityCenter} itinerary={itinerary} selectedDay={selectedDay} />
+                <MapView
+                  center={cityCenter}
+                  itinerary={itinerary}
+                  selectedDay={selectedDay}
+                  currency={trip.currency}
+                />
               ) : (
                 <div className="flex h-64 items-center justify-center rounded-lg border border-dashed border-line text-sm text-ink-soft">
                   {planning ? "Agentlər marşrutu müzakirə edir..." : "Marşrut hazırlanmadı."}

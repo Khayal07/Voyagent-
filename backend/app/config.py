@@ -10,7 +10,7 @@ class Settings(BaseSettings):
     openrouter_api_key: str = ""
     primary_provider: str = "openai"
     openai_model: str = "gpt-4o-mini"
-    openrouter_model: str = "meta-llama/llama-3.3-70b-instruct:free"
+    openrouter_model: str = "openrouter/free"
 
 
 settings = Settings()

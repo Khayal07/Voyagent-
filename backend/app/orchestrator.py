@@ -6,11 +6,12 @@ import uuid
 from sqlalchemy.ext.asyncio import AsyncSession
 
 from .agents import budget, interest, logistics, planner
+from .agents.logistics import haversine_km
 from .db import SessionLocal
 from .events import bus
 from .llm.client import LLMResult
 from .models import AgentMessage, Itinerary, Trip
-from .services.geocode import geocode
+from .services.geocode import geocode, geocode_near
 
 logger = logging.getLogger("voyagent.orchestrator")
 
@@ -55,13 +56,34 @@ async def set_status(session: AsyncSession, trip: Trip, status: str) -> None:
     await bus.publish(str(trip.id), "status", {"status": status})
 
 
-async def _geocode_days(days: list[dict], city: str) -> None:
+MAX_KM_FROM_CENTER = 80
+
+
+async def _geocode_days(days: list[dict], city: str, center: tuple[float, float] | None) -> None:
+    """3 qatlı zəncir: 'ad, şəhər' → şəhər ətrafında bounded axtarış → LLM-in təxmini koordinatı.
+
+    Şəhər mərkəzindən çox uzaq nəticələr (eyniadlı başqa yer) rədd edilir.
+    """
+    def near_center(c: tuple[float, float]) -> bool:
+        return center is None or haversine_km(c, center) <= MAX_KM_FROM_CENTER
+
     for d in days:
         for item in d["items"]:
-            if item.get("lat") is None:
-                coords = await geocode(item["name"], city)
-                if coords:
-                    item["lat"], item["lon"] = coords
+            if item.get("lat") is not None:
+                continue
+            coords = await geocode(item["name"], city)
+            if coords is not None and not near_center(coords):
+                logger.info("Geocode nəticəsi çox uzaqdır, rədd edildi: %s", item["name"])
+                coords = None
+            if coords is None and center is not None:
+                coords = await geocode_near(item["name"], center)
+            if coords is None and item.get("llm_lat") is not None:
+                llm_coords = (item["llm_lat"], item["llm_lon"])
+                if near_center(llm_coords):
+                    coords = llm_coords
+                    logger.info("LLM koordinatı istifadə olundu: %s", item["name"])
+            if coords is not None:
+                item["lat"], item["lon"] = coords
 
 
 async def run_trip_planning(trip_id: uuid.UUID) -> None:
@@ -97,7 +119,7 @@ async def _run(session: AsyncSession, trip: Trip) -> None:
     await emit(session, trip_id, "interest", 0, "proposal", say, {"days": days})
 
     await emit(session, trip_id, "system", 0, "info", "Yerlərin koordinatları tapılır (OpenStreetMap)...")
-    await _geocode_days(days, trip.city)
+    await _geocode_days(days, trip.city, city_coords)
 
     # Negotiation dövrəsi
     for round_no in range(1, MAX_ROUNDS + 2):
@@ -130,7 +152,7 @@ async def _run(session: AsyncSession, trip: Trip) -> None:
         say, days, llm = await interest.revise(trip, days, objections)
         await note_fallback(session, trip_id, "interest", round_no, llm)
         await emit(session, trip_id, "interest", round_no, "revision", say, {"days": days})
-        await _geocode_days(days, trip.city)
+        await _geocode_days(days, trip.city, city_coords)
 
     # Planner: yekun cədvəl
     schedule, total_cost = planner.build_schedule(trip, days)

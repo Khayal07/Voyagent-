@@ -10,12 +10,12 @@ def interest_propose(city: str, num_days: int, interests: list[str], travelers: 
     ints = ", ".join(interests) if interests else "ümumi"
     return (
         f"Şəhər: {city}. Gün sayı: {num_days}. Maraqlar: {ints}. Səyahətçi: {travelers} nəfər.\n"
-        "Hər gün üçün DÜZ 3 aktivlik təklif et (real yerlər, bir-birinə yaxın olanlar eyni gündə).\n"
+        "Hər gün üçün 3-4 aktivlik təklif et (günün dolğunluğuna görə özün qərar ver; real yerlər, bir-birinə yaxın olanlar eyni gündə).\n"
         '"name" YALNIZ yerin rəsmi orijinal adı olsun (yerli dildə/ingiliscə, OpenStreetMap-da tapılan) — '
         'təsvir, tərcümə və artıq söz YOX. Düz: "Fontana di Trevi". Səhv: "Trevi fəvvarəsini görmək", "Vatikanda Sixtin Kapellası".\n'
         'JSON: {"say": "azərbaycanca 1-2 cümlə (nəyi niyə seçdin)", "days": [{"day": 1, "items": '
         '[{"name": "yer adı", "category": "history|nature|food|nightlife|art|shopping|other", '
-        f'"est_cost": <adambaşı {currency}>, "duration_min": <int>}}]}}]}}'
+        f'"est_cost": <adambaşı {currency}>, "duration_min": <int>, "lat": <təxmini>, "lon": <təxmini>}}]}}]}}'
     )
 
 
@@ -28,7 +28,8 @@ def interest_revise(city: str, currency: str, objections: list[dict]) -> str:
         "Hər etiraz olunan yer üçün EYNİ gündə oxşar maraqda 1 alternativ ver (tələbə uyğun: daha ucuz və ya daha yaxın).\n"
         '"name" YALNIZ yerin rəsmi orijinal adı olsun (yerli dildə/ingiliscə), təsvir və artıq söz YOX.\n'
         'JSON: {"say": "azərbaycanca 1-2 cümlə", "replacements": [{"day": 1, "replace": "köhnə yer adı", '
-        '"item": {"name": "...", "category": "...", "est_cost": ' + f"<adambaşı {currency}>" + ', "duration_min": <int>}}]}'
+        '"item": {"name": "...", "category": "...", "est_cost": ' + f"<adambaşı {currency}>"
+        + ', "duration_min": <int>, "lat": <təxmini>, "lon": <təxmini>}}]}'
     )
 
 
