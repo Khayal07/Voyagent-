@@ -66,6 +66,9 @@ async def revise(trip: Trip, days: list[dict], objections: list[dict]) -> tuple[
         for d in new_days:
             if d["day"] != day_no:
                 continue
+            # eyni gündə dublikat yer yaranmasın
+            if any(x["name"].lower() == item["name"].lower() for x in d["items"]):
+                break
             for idx, existing in enumerate(d["items"]):
                 if existing["name"].lower() == old_name:
                     d["items"][idx] = item
