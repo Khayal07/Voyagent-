@@ -43,7 +43,7 @@ Backend API sənədləri: http://localhost:8001/docs
 | `OPENROUTER_API_KEY` | Fallback provider açarı |
 | `PRIMARY_PROVIDER` | `openai` (default) və ya `openrouter` |
 | `OPENAI_MODEL` | Default: `gpt-4o-mini` |
-| `OPENROUTER_MODEL` | Default: `meta-llama/llama-3.3-70b-instruct:free` |
+| `OPENROUTER_MODEL` | Default: `openrouter/free` |
 
 OpenAI çağırışı uğursuz olarsa (rate limit, açar xətası, timeout) sistem avtomatik OpenRouter-ə keçir — bu keçid həm backend logunda, həm də UI-dakı agent danışığında şəffaf göstərilir.
 
