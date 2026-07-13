@@ -19,6 +19,7 @@ class Trip(Base):
     currency: Mapped[str] = mapped_column(String(3), default="USD")
     travelers: Mapped[int] = mapped_column(Integer, default=1)
     interests: Mapped[list] = mapped_column(JSONB, default=list)
+    language: Mapped[str] = mapped_column(String(2), default="en")
     status: Mapped[str] = mapped_column(String(20), default="pending")
     created_at: Mapped[datetime] = mapped_column(DateTime(timezone=True), server_default=func.now())
 

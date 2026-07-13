@@ -14,6 +14,7 @@ class TripCreate(BaseModel):
     currency: str = Field(default="USD", min_length=3, max_length=3)
     travelers: int = Field(default=1, ge=1, le=20)
     interests: list[str] = Field(default_factory=list, max_length=10)
+    language: str = Field(default="en", pattern="^(az|en)$")
 
     @model_validator(mode="after")
     def check_dates(self):
@@ -52,6 +53,7 @@ class TripOut(BaseModel):
     currency: str
     travelers: int
     interests: list
+    language: str
     status: str
     created_at: datetime
 

@@ -8,7 +8,7 @@ export async function createTrip(input: TripInput): Promise<Trip> {
   });
   if (!resp.ok) {
     const body = await resp.json().catch(() => null);
-    throw new Error(body?.detail?.[0]?.msg ?? body?.detail ?? "Sorğu alınmadı");
+    throw new Error(body?.detail?.[0]?.msg ?? body?.detail ?? "Request failed");
   }
   return resp.json();
 }

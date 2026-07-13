@@ -30,9 +30,9 @@ def check(trip: Trip, days: list[dict]) -> tuple[bool, float, list[dict]]:
             {
                 "day": day_no,
                 "name": item["name"],
-                "reason": (
-                    f"bahalıdır ({item['est_cost']} {trip.currency} adambaşı) — "
-                    f"~{target} {trip.currency}-dək alternativ lazımdır"
+                "reason": prompts.msg(
+                    trip.language, "budget_reason",
+                    cost=item["est_cost"], cur=trip.currency, target=target,
                 ),
             }
         )
@@ -41,20 +41,23 @@ def check(trip: Trip, days: list[dict]) -> tuple[bool, float, list[dict]]:
 
 
 def approval_message(trip: Trip, total: float) -> str:
-    return f"Büdcə yoxlanışı: ümumi xərc ~{total} {trip.currency}, büdcə {float(trip.budget)} {trip.currency} — uyğundur, təsdiqləyirəm."
+    return prompts.msg(trip.language, "budget_ok", total=total, budget=float(trip.budget), cur=trip.currency)
 
 
 async def objection_message(trip: Trip, total: float, objections: list[dict]) -> tuple[str, LLMResult | None]:
     facts = (
-        f"Büdcə: {float(trip.budget)} {trip.currency} ({trip.travelers} nəfər). Hesablanan ümumi xərc: {total} {trip.currency}. "
-        "Etiraz olunan yerlər: " + "; ".join(f'Gün {o["day"]} — {o["name"]} ({o["reason"]})' for o in objections)
+        f"Budget: {float(trip.budget)} {trip.currency} ({trip.travelers} travelers). Calculated total: {total} {trip.currency}. "
+        "Objected items: " + "; ".join(f'Day {o["day"]} — {o["name"]} ({o["reason"]})' for o in objections)
     )
     try:
-        return await ask_text(prompts.BUDGET_SAY_SYSTEM, facts)
+        return await ask_text(prompts.budget_say_system(trip.language), facts)
     except Exception:
         # LLM əlçatan olmasa danışıq template ilə davam edir
+        items = "; ".join(f'Day {o["day"]}: "{o["name"]}" — {o["reason"]}' for o in objections)
         return (
-            f"Ümumi xərc {total} {trip.currency} büdcəni ({float(trip.budget)} {trip.currency}) aşır. "
-            + "; ".join(f'Gün {o["day"]}: "{o["name"]}" {o["reason"]}' for o in objections),
+            prompts.msg(
+                trip.language, "budget_obj_template",
+                total=total, budget=float(trip.budget), cur=trip.currency, items=items,
+            ),
             None,
         )

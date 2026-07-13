@@ -32,7 +32,7 @@ def _coords(item: dict) -> tuple[float, float] | None:
     return None
 
 
-def check(days: list[dict]) -> tuple[bool, list[dict], list[dict]]:
+def check(days: list[dict], lang: str = "en") -> tuple[bool, list[dict], list[dict]]:
     """(uyğundur?, günlük statistika, etirazlar). Sığmayan gündə ən uzaq item etiraz alır."""
     objections, stats = [], []
     for d in days:
@@ -55,25 +55,27 @@ def check(days: list[dict]) -> tuple[bool, list[dict], list[dict]]:
                 {
                     "day": d["day"],
                     "name": far_item["name"],
-                    "reason": (
-                        f"gün {d['day']} cədvələ sığmır (~{round(total_min / 60, 1)} saat aktivlik+yol) — "
-                        "digər yerlərə daha yaxın alternativ lazımdır"
+                    "reason": prompts.msg(
+                        lang, "logistics_reason", day=d["day"], hours=round(total_min / 60, 1)
                     ),
                 }
             )
     return len(objections) == 0, stats, objections
 
 
-def approval_message(stats: list[dict]) -> str:
-    parts = ", ".join(f"gün {s['day']}: ~{round((s['travel_min'] + s['active_min']) / 60, 1)} saat" for s in stats)
-    return f"Logistika yoxlanışı: bütün günlər real vaxta sığır ({parts}). Təsdiqləyirəm."
+def approval_message(stats: list[dict], lang: str = "en") -> str:
+    parts = ", ".join(
+        prompts.msg(lang, "logistics_day_part", day=s["day"], hours=round((s["travel_min"] + s["active_min"]) / 60, 1))
+        for s in stats
+    )
+    return prompts.msg(lang, "logistics_ok", parts=parts)
 
 
-async def objection_message(city: str, objections: list[dict]) -> tuple[str, LLMResult | None]:
-    facts = f"Şəhər: {city}. Problemlər: " + "; ".join(
-        f'Gün {o["day"]} — {o["name"]}: {o["reason"]}' for o in objections
+async def objection_message(city: str, objections: list[dict], lang: str = "en") -> tuple[str, LLMResult | None]:
+    facts = f"City: {city}. Problems: " + "; ".join(
+        f'Day {o["day"]} — {o["name"]}: {o["reason"]}' for o in objections
     )
     try:
-        return await ask_text(prompts.LOGISTICS_SAY_SYSTEM, facts)
+        return await ask_text(prompts.logistics_say_system(lang), facts)
     except Exception:
-        return "; ".join(f'Gün {o["day"]}: "{o["name"]}" — {o["reason"]}' for o in objections), None
+        return "; ".join(f'Day {o["day"]}: "{o["name"]}" — {o["reason"]}' for o in objections), None

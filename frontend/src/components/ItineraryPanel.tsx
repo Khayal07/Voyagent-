@@ -1,15 +1,6 @@
+import { useT } from "../i18n";
 import type { Itinerary } from "../types";
 import { DAY_COLORS } from "./MapView";
-
-const CATEGORY_LABELS: Record<string, string> = {
-  history: "tarix",
-  nature: "təbiət",
-  food: "yemək",
-  nightlife: "gecə həyatı",
-  art: "incəsənət",
-  shopping: "alış-veriş",
-  other: "digər",
-};
 
 interface Props {
   itinerary: Itinerary;
@@ -19,6 +10,7 @@ interface Props {
 }
 
 export default function ItineraryPanel({ itinerary, currency, selectedDay, onSelectDay }: Props) {
+  const t = useT();
   const visibleDays =
     selectedDay === 0 ? itinerary.days : itinerary.days.filter((d) => d.day === selectedDay);
 
@@ -33,7 +25,7 @@ export default function ItineraryPanel({ itinerary, currency, selectedDay, onSel
             selectedDay === 0 ? "bg-ink text-mist" : "text-ink-soft hover:text-ink"
           }`}
         >
-          Hamısı
+          {t.all}
         </button>
         {itinerary.days.map((d) => (
           <button
@@ -50,7 +42,7 @@ export default function ItineraryPanel({ itinerary, currency, selectedDay, onSel
                 : undefined
             }
           >
-            Gün {d.day}
+            {t.day} {d.day}
           </button>
         ))}
       </div>
@@ -63,7 +55,7 @@ export default function ItineraryPanel({ itinerary, currency, selectedDay, onSel
                 className="inline-block h-2.5 w-2.5 rounded-full"
                 style={{ background: DAY_COLORS[(d.day - 1) % DAY_COLORS.length] }}
               />
-              Gün {d.day}
+              {t.day} {d.day}
               <span className="font-mono text-xs font-normal text-ink-soft">{d.date}</span>
             </h3>
             <ol className="space-y-2">
@@ -74,7 +66,7 @@ export default function ItineraryPanel({ itinerary, currency, selectedDay, onSel
                   <span className="min-w-0 flex-1">
                     {i.name}{" "}
                     <span className="whitespace-nowrap rounded-sm bg-mist px-1.5 py-px font-mono text-[10px] text-ink-soft">
-                      {CATEGORY_LABELS[i.category] ?? i.category}
+                      {t.categories[i.category as keyof typeof t.categories] ?? i.category}
                     </span>
                   </span>
                   <span className="whitespace-nowrap font-mono text-xs text-ink-soft">
@@ -88,7 +80,7 @@ export default function ItineraryPanel({ itinerary, currency, selectedDay, onSel
       </div>
 
       <div className="border-t border-line px-4 py-3 text-right font-mono text-sm">
-        Ümumi xərc:{" "}
+        {t.totalCost}:{" "}
         <strong>
           {itinerary.total_cost} {currency}
         </strong>

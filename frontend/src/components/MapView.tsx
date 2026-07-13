@@ -1,6 +1,7 @@
 import L from "leaflet";
 import { useEffect, useMemo } from "react";
 import { MapContainer, Marker, Polyline, Popup, TileLayer, Tooltip, useMap } from "react-leaflet";
+import { useT } from "../i18n";
 import type { Itinerary } from "../types";
 
 export const DAY_COLORS = ["#e4572e", "#2274a5", "#2e933c", "#7c5cbf", "#d98e04"];
@@ -42,6 +43,7 @@ interface Props {
 }
 
 export default function MapView({ center, itinerary, selectedDay, currency }: Props) {
+  const t = useT();
   const days = itinerary?.days ?? [];
 
   const focusPoints = useMemo<[number, number][]>(() => {
@@ -83,9 +85,9 @@ export default function MapView({ center, itinerary, selectedDay, currency }: Pr
                     <Popup>
                       <strong>{i.name}</strong>
                       <br />
-                      Gün {d.day} · {i.start_time ?? "—"} başlayır
+                      {t.day} {d.day} · {t.startsAt} {i.start_time ?? "—"}
                       <br />
-                      {i.est_cost} {currency} adambaşı · ~{i.duration_min} dəq
+                      {i.est_cost} {currency} {t.perPerson} · ~{i.duration_min} {t.minutes}
                     </Popup>
                   </Marker>
                 ))}

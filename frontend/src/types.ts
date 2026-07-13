@@ -6,6 +6,7 @@ export interface TripInput {
   currency: string;
   travelers: number;
   interests: string[];
+  language: string;
 }
 
 export interface Trip extends TripInput {

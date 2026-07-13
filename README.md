@@ -1,80 +1,82 @@
-# Voyagent — AI Multi-Agent Səyahət Planlaşdırıcı
+# Voyagent — AI Multi-Agent Travel Planner
 
-Büdcə, tarix, maraqlar və iştirakçı sayına əsasən optimal səyahət marşrutu yaradan multi-agent AI sistemi. Dörd agent (Interest, Budget, Logistics, Planner) bir-biri ilə "danışaraq" ziddiyyətləri həll edir və son marşrutu formalaşdırır — bu proses istifadəçiyə **canlı** (SSE) göstərilir, marşrut isə xəritə üzərində vizuallaşdırılır.
+A multi-agent AI system that builds an optimal travel itinerary from your budget, dates, interests and group size. Four agents (Interest, Budget, Logistics, Planner) "talk" to each other to resolve conflicts and shape the final route — the whole negotiation is streamed **live** to the user (SSE), and the route is visualised on a map.
 
-## Necə işləyir
+## How it works
 
-1. **Interest Agent** maraqlara uyğun real yerlər/aktivliklər təklif edir (LLM)
-2. **Budget Agent** ümumi xərci hesablayır; büdcəni aşan item-lara etiraz edir
-3. **Logistics Agent** OpenStreetMap koordinatlarına əsasən günlük marşrutun vaxta sığmasını yoxlayır
-4. Etiraz olduqda Interest Agent alternativ təklif edir (maksimum 2 danışıq raundu)
-5. **Planner Agent** təsdiqlənmiş plandan vaxtlı gündəlik cədvəl qurur
+1. **Interest Agent** proposes real places/activities matching your interests (LLM)
+2. **Budget Agent** calculates the total cost; objects to items that break the budget
+3. **Logistics Agent** checks that each day fits a realistic schedule, using OpenStreetMap coordinates
+4. When there is an objection, the Interest Agent proposes alternatives (max 2 negotiation rounds)
+5. **Planner Agent** turns the approved plan into a timed daily schedule
 
-Xərc/məsafə yoxlamaları kodda aparılır — LLM yalnız təklif generasiyası və qısa "danışıq" mesajları üçün çağırılır (token xərci minimum saxlanılır).
+Cost and distance checks run in code — the LLM is only called for generating proposals and short "talk" messages (token cost is kept to a minimum).
 
 ## Stack
 
 - **Backend:** FastAPI (Python 3.12), SQLAlchemy async, SSE streaming
 - **DB:** PostgreSQL 16
-- **LLM:** OpenAI `gpt-4o-mini` (əsas) + OpenRouter pulsuz modellər (avtomatik fallback)
-- **Frontend:** React 19 + Vite + Tailwind CSS 4, Leaflet (CARTO Voyager tiles)
-- **Geocoding:** Nominatim (OpenStreetMap) — pulsuz, API açarsız
-- **Docker:** docker-compose ilə 3 servis (db, backend, frontend)
+- **LLM:** OpenAI `gpt-4o-mini` (primary) + OpenRouter free models (automatic fallback)
+- **Frontend:** React 19 + Vite + Tailwind CSS 4, Leaflet (CARTO Voyager tiles), EN/AZ language switch
+- **Geocoding:** Nominatim (OpenStreetMap) — free, no API key
+- **Docker:** 3 services via docker-compose (db, backend, frontend)
 
-## Quraşdırma
+## Setup
 
 ```bash
 git clone https://github.com/Khayal07/Voyagent-.git
 cd Voyagent-
 cp .env.example .env
-# .env faylında OPENAI_API_KEY və OPENROUTER_API_KEY dəyərlərini doldur
+# fill in OPENAI_API_KEY and OPENROUTER_API_KEY in .env
 docker compose up --build
 ```
 
-Sonra brauzerdə: **http://localhost:8000**
+Then open: **http://localhost:8000**
 
-Backend API sənədləri: http://localhost:8001/docs
+Backend API docs: http://localhost:8001/docs
 
-### .env parametrləri
+### .env parameters
 
-| Dəyişən | Təsvir |
+| Variable | Description |
 |---|---|
-| `OPENAI_API_KEY` | Əsas provider açarı |
-| `OPENROUTER_API_KEY` | Fallback provider açarı |
-| `PRIMARY_PROVIDER` | `openai` (default) və ya `openrouter` |
+| `OPENAI_API_KEY` | Primary provider key |
+| `OPENROUTER_API_KEY` | Fallback provider key |
+| `PRIMARY_PROVIDER` | `openai` (default) or `openrouter` |
 | `OPENAI_MODEL` | Default: `gpt-4o-mini` |
 | `OPENROUTER_MODEL` | Default: `openrouter/free` |
 
-OpenAI çağırışı uğursuz olarsa (rate limit, açar xətası, timeout) sistem avtomatik OpenRouter-ə keçir — bu keçid həm backend logunda, həm də UI-dakı agent danışığında şəffaf göstərilir.
+If the OpenAI call fails (rate limit, key error, timeout), the system automatically switches to OpenRouter — the switch is logged transparently both in the backend log and in the agent chat in the UI.
 
 ## Demo
 
-1. Şəhər (məs. "Roma"), tarix aralığı (maks. 5 gün), büdcə, nəfər sayı və maraqları seç
-2. **"Marşrutu planla"** düyməsinə bas
-3. Sağ paneldə agentlərin canlı danışığını izlə — təkliflər, etirazlar (`ETİRAZ`), təsdiqlər (`TƏSDİQ`) və yekun qərar
-4. Xəritədə hər günün marşrutu ayrı rəngli xətlə çəkilir; gün tab-larına klik etməklə fokusla
+1. Pick a city (e.g. "Rome"), a date range (max 5 days), budget, group size and interests
+2. Press **"Plan my route"**
+3. Watch the agents negotiate live in the right panel — proposals, objections (`OBJECTION`), approvals (`APPROVED`) and the final decision
+4. Each day's route is drawn on the map in its own colour; click the day tabs to focus
+5. Switch the interface language (EN/AZ) in the header — agents reply in the selected language
 
 ## API
 
-- `POST /api/trips` — yeni səyahət sorğusu (planlaşdırma arxa planda başlayır)
-- `GET /api/trips/{id}/stream` — SSE: agent mesajları real vaxtda
-- `GET /api/trips/{id}` — trip + bütün mesajlar + yekun marşrut
-- `GET /health`, `GET /debug/llm` — servis yoxlamaları
+- `POST /api/trips` — create a new trip request (planning starts in the background)
+- `GET /api/trips/{id}/stream` — SSE: agent messages in real time
+- `GET /api/trips/{id}` — trip + all messages + final itinerary
+- `GET /health`, `GET /debug/llm` — service checks
 
-## Layihə strukturu
+## Project structure
 
 ```
 backend/app/
 ├── agents/          # interest, budget, logistics, planner
-├── llm/             # call_llm() + fallback, promptlar
+├── llm/             # call_llm() + fallback, prompts and message templates
 ├── services/        # Nominatim geocoding (cache + rate limit)
 ├── routers/         # trip API + SSE
-└── orchestrator.py  # negotiation dövrəsi
+└── orchestrator.py  # negotiation loop
 frontend/src/
 ├── components/      # TripForm, AgentChat, MapView, ItineraryPanel
+├── i18n.ts          # EN/AZ translations
 └── api.ts           # fetch + EventSource
 ```
 
-## Lisenziya
+## License
 
-Təhsil məqsədli layihə (Div Academy AI Engineering capstone).
+Educational project (Div Academy AI Engineering capstone).

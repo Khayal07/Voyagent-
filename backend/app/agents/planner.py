@@ -37,17 +37,16 @@ def build_schedule(trip: Trip, days: list[dict]) -> tuple[list[dict], float]:
 
 async def summary_message(trip: Trip, schedule: list[dict], total_cost: float) -> tuple[str, LLMResult | None]:
     compact = "; ".join(
-        f"Gün {d['day']}: " + ", ".join(i["name"] for i in d["items"]) for d in schedule
+        f"Day {d['day']}: " + ", ".join(i["name"] for i in d["items"]) for d in schedule
     )
     facts = (
-        f"Şəhər: {trip.city}, {len(schedule)} gün, {trip.travelers} nəfər, "
-        f"ümumi xərc ~{total_cost} {trip.currency} (büdcə {float(trip.budget)}). Plan: {compact}"
+        f"City: {trip.city}, {len(schedule)} days, {trip.travelers} travelers, "
+        f"total cost ~{total_cost} {trip.currency} (budget {float(trip.budget)}). Plan: {compact}"
     )
     try:
-        return await ask_text(prompts.PLANNER_SAY_SYSTEM, facts, max_tokens=150)
+        return await ask_text(prompts.planner_say_system(trip.language), facts, max_tokens=150)
     except Exception:
         return (
-            f"Yekun marşrut hazırdır: {len(schedule)} gün, ümumi xərc ~{total_cost} {trip.currency}. "
-            "Bütün günlər büdcə və logistika baxımından təsdiqlənib.",
+            prompts.msg(trip.language, "planner_template", days=len(schedule), total=total_cost, cur=trip.currency),
             None,
         )

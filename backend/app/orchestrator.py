@@ -10,6 +10,7 @@ from .agents.logistics import haversine_km
 from .db import SessionLocal
 from .events import bus
 from .llm.client import LLMResult
+from .llm.prompts import msg
 from .models import AgentMessage, Itinerary, Trip
 from .services.geocode import geocode, geocode_near
 
@@ -39,14 +40,13 @@ async def emit(
 
 
 async def note_fallback(
-    session: AsyncSession, trip_id: uuid.UUID, agent: str, round_: int, llm: LLMResult | None
+    session: AsyncSession, trip_id: uuid.UUID, agent: str, round_: int, llm: LLMResult | None, lang: str = "en"
 ) -> None:
     """Provider fallback baş veribsə bunu şəffaf şəkildə istifadəçiyə göstərir."""
     if llm is not None and llm.fallback_reason:
         await emit(
             session, trip_id, "system", round_, "info",
-            f"{agent.capitalize()} Agent OpenRouter fallback modelinə keçdi ({llm.model}). "
-            f"Səbəb: {llm.fallback_reason[:150]}",
+            msg(lang, "fallback", agent=agent.capitalize(), model=llm.model, reason=llm.fallback_reason[:150]),
         )
 
 
@@ -97,28 +97,29 @@ async def run_trip_planning(trip_id: uuid.UUID) -> None:
         except Exception as e:
             logger.exception("Planlaşdırma xətası (trip=%s)", trip_id)
             await session.rollback()
-            await emit(session, trip_id, "system", 0, "info", f"Planlaşdırma dayandı: {str(e)[:200]}")
+            await emit(session, trip_id, "system", 0, "info", msg(trip.language, "stopped", error=str(e)[:200]))
             await set_status(session, trip, "failed")
             await bus.publish(str(trip_id), "error", {"detail": str(e)[:200]})
 
 
 async def _run(session: AsyncSession, trip: Trip) -> None:
     trip_id = trip.id
+    lang = trip.language
     num_days = (trip.end_date - trip.start_date).days + 1
     await set_status(session, trip, "planning")
     city_coords = await geocode(trip.city)
     await emit(
         session, trip_id, "system", 0, "info",
-        f"{trip.city} üçün {num_days} günlük plan hazırlanır — 4 agent işə başlayır.",
+        msg(lang, "start", city=trip.city, days=num_days),
         {"lat": city_coords[0], "lon": city_coords[1]} if city_coords else None,
     )
 
     # Raund 0: Interest Agent ilkin təklif
     say, days, llm = await interest.propose(trip, num_days)
-    await note_fallback(session, trip_id, "interest", 0, llm)
+    await note_fallback(session, trip_id, "interest", 0, llm, lang)
     await emit(session, trip_id, "interest", 0, "proposal", say, {"days": days})
 
-    await emit(session, trip_id, "system", 0, "info", "Yerlərin koordinatları tapılır (OpenStreetMap)...")
+    await emit(session, trip_id, "system", 0, "info", msg(lang, "geocoding"))
     await _geocode_days(days, trip.city, city_coords)
 
     # Negotiation dövrəsi
@@ -127,37 +128,34 @@ async def _run(session: AsyncSession, trip: Trip) -> None:
         if budget_ok:
             await emit(session, trip_id, "budget", round_no, "approval", budget.approval_message(trip, total))
         else:
-            msg, b_llm = await budget.objection_message(trip, total, budget_objs)
-            await note_fallback(session, trip_id, "budget", round_no, b_llm)
-            await emit(session, trip_id, "budget", round_no, "objection", msg, {"objections": budget_objs, "total": total})
+            obj_msg, b_llm = await budget.objection_message(trip, total, budget_objs)
+            await note_fallback(session, trip_id, "budget", round_no, b_llm, lang)
+            await emit(session, trip_id, "budget", round_no, "objection", obj_msg, {"objections": budget_objs, "total": total})
 
-        logistics_ok, stats, logistics_objs = logistics.check(days)
+        logistics_ok, stats, logistics_objs = logistics.check(days, lang)
         if logistics_ok:
-            await emit(session, trip_id, "logistics", round_no, "approval", logistics.approval_message(stats))
+            await emit(session, trip_id, "logistics", round_no, "approval", logistics.approval_message(stats, lang))
         else:
-            msg, l_llm = await logistics.objection_message(trip.city, logistics_objs)
-            await note_fallback(session, trip_id, "logistics", round_no, l_llm)
-            await emit(session, trip_id, "logistics", round_no, "objection", msg, {"objections": logistics_objs})
+            obj_msg, l_llm = await logistics.objection_message(trip.city, logistics_objs, lang)
+            await note_fallback(session, trip_id, "logistics", round_no, l_llm, lang)
+            await emit(session, trip_id, "logistics", round_no, "objection", obj_msg, {"objections": logistics_objs})
 
         objections = budget_objs + logistics_objs
         if not objections:
             break
         if round_no > MAX_ROUNDS:
-            await emit(
-                session, trip_id, "system", round_no, "info",
-                "Maksimum danışıq raundu keçildi — mövcud ən yaxşı variantla davam edilir.",
-            )
+            await emit(session, trip_id, "system", round_no, "info", msg(lang, "max_rounds"))
             break
 
         say, days, llm = await interest.revise(trip, days, objections)
-        await note_fallback(session, trip_id, "interest", round_no, llm)
+        await note_fallback(session, trip_id, "interest", round_no, llm, lang)
         await emit(session, trip_id, "interest", round_no, "revision", say, {"days": days})
         await _geocode_days(days, trip.city, city_coords)
 
     # Planner: yekun cədvəl
     schedule, total_cost = planner.build_schedule(trip, days)
     say, p_llm = await planner.summary_message(trip, schedule, total_cost)
-    await note_fallback(session, trip_id, "planner", 99, p_llm)
+    await note_fallback(session, trip_id, "planner", 99, p_llm, lang)
     await emit(session, trip_id, "planner", 99, "final", say, {"days": schedule, "total_cost": total_cost})
 
     session.add(Itinerary(trip_id=trip_id, days=schedule, total_cost=total_cost))

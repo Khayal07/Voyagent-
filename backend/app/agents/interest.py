@@ -44,10 +44,12 @@ def normalize_days(raw_days: list, num_days: int) -> list[dict]:
 async def propose(trip: Trip, num_days: int) -> tuple[str, list[dict], LLMResult]:
     data, llm = await ask_json(
         prompts.INTEREST_SYSTEM,
-        prompts.interest_propose(trip.city, num_days, list(trip.interests or []), trip.travelers, trip.currency),
+        prompts.interest_propose(
+            trip.city, num_days, list(trip.interests or []), trip.travelers, trip.currency, trip.language
+        ),
         max_tokens=1500,
     )
-    say = str(data.get("say", "Təkliflərim hazırdır.")).strip()
+    say = str(data.get("say", prompts.msg(trip.language, "say_propose_default"))).strip()
     return say, normalize_days(data.get("days", []), num_days), llm
 
 
@@ -55,10 +57,10 @@ async def revise(trip: Trip, days: list[dict], objections: list[dict]) -> tuple[
     """Yalnız etiraz olunan item-ları əvəz edir; days siyahısının yenilənmiş kopyasını qaytarır."""
     data, llm = await ask_json(
         prompts.INTEREST_SYSTEM,
-        prompts.interest_revise(trip.city, trip.currency, objections),
+        prompts.interest_revise(trip.city, trip.currency, objections, trip.language),
         max_tokens=800,
     )
-    say = str(data.get("say", "Alternativlər təklif edirəm.")).strip()
+    say = str(data.get("say", prompts.msg(trip.language, "say_revise_default"))).strip()
 
     new_days = [{"day": d["day"], "items": list(d["items"])} for d in days]
     for rep in data.get("replacements", []):

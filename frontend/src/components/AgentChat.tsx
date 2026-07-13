@@ -1,4 +1,5 @@
 import { useEffect, useRef } from "react";
+import { useT } from "../i18n";
 import type { AgentMsg } from "../types";
 import AgentMessage from "./AgentMessage";
 
@@ -8,6 +9,7 @@ interface Props {
 }
 
 export default function AgentChat({ messages, planning }: Props) {
+  const t = useT();
   const bottomRef = useRef<HTMLDivElement>(null);
 
   useEffect(() => {
@@ -18,21 +20,19 @@ export default function AgentChat({ messages, planning }: Props) {
     <aside className="flex h-full min-h-0 flex-col rounded-lg border border-line bg-mist/60">
       <header className="flex items-center justify-between border-b border-line px-4 py-3">
         <span className="font-mono text-xs font-medium tracking-[0.2em] text-ink-soft">
-          CANLI DANIŞIQ
+          {t.liveChat}
         </span>
         <span className="flex items-center gap-1.5 font-mono text-[11px] text-ink-soft">
           <span
             className={`h-2 w-2 rounded-full ${planning ? "bg-route typing-dot" : "bg-agent-budget"}`}
           />
-          {planning ? "gedir" : "hazır"}
+          {planning ? t.statusActive : t.statusIdle}
         </span>
       </header>
 
       <div className="min-h-0 flex-1 overflow-y-auto px-4 py-4">
         {messages.length === 0 && !planning && (
-          <p className="py-8 text-center text-sm text-ink-soft">
-            Formu doldur — agentlərin danışığı burada canlı axacaq.
-          </p>
+          <p className="py-8 text-center text-sm text-ink-soft">{t.chatEmpty}</p>
         )}
         <div className="route-thread ml-1.5">
           {messages.map((m) => (
