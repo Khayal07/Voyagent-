@@ -8,6 +8,7 @@ class Settings(BaseSettings):
 
     openai_api_key: str = ""
     openrouter_api_key: str = ""
+    geoapify_api_key: str = ""
     primary_provider: str = "openai"
     openai_model: str = "gpt-4o-mini"
     openrouter_model: str = "openrouter/free"

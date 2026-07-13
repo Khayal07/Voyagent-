@@ -41,11 +41,12 @@ def normalize_days(raw_days: list, num_days: int) -> list[dict]:
     return days
 
 
-async def propose(trip: Trip, num_days: int) -> tuple[str, list[dict], LLMResult]:
+async def propose(trip: Trip, num_days: int, pois: dict[str, list[dict]] | None = None) -> tuple[str, list[dict], LLMResult]:
     data, llm = await ask_json(
         prompts.INTEREST_SYSTEM,
         prompts.interest_propose(
-            trip.city, num_days, list(trip.interests or []), trip.travelers, trip.currency, trip.language
+            trip.city, num_days, list(trip.interests or []), trip.travelers, trip.currency, trip.language,
+            pois_text=prompts.poi_block(pois or {}),
         ),
         max_tokens=1500,
     )
@@ -53,11 +54,15 @@ async def propose(trip: Trip, num_days: int) -> tuple[str, list[dict], LLMResult
     return say, normalize_days(data.get("days", []), num_days), llm
 
 
-async def revise(trip: Trip, days: list[dict], objections: list[dict]) -> tuple[str, list[dict], LLMResult]:
+async def revise(
+    trip: Trip, days: list[dict], objections: list[dict], pois: dict[str, list[dict]] | None = None
+) -> tuple[str, list[dict], LLMResult]:
     """Yalnız etiraz olunan item-ları əvəz edir; days siyahısının yenilənmiş kopyasını qaytarır."""
     data, llm = await ask_json(
         prompts.INTEREST_SYSTEM,
-        prompts.interest_revise(trip.city, trip.currency, objections, trip.language),
+        prompts.interest_revise(
+            trip.city, trip.currency, objections, trip.language, pois_text=prompts.poi_block(pois or {})
+        ),
         max_tokens=800,
     )
     say = str(data.get("say", prompts.msg(trip.language, "say_revise_default"))).strip()

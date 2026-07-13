@@ -18,10 +18,21 @@ INTEREST_SYSTEM = (
 )
 
 
-def interest_propose(city: str, num_days: int, interests: list[str], travelers: int, currency: str, lang: str) -> str:
+def poi_block(pois: dict[str, list[dict]]) -> str:
+    """Geoapify namizədlərini kompakt prompt blokuna çevirir (boş dict → boş sətir)."""
+    if not pois:
+        return ""
+    lines = "\n".join(f"{cat}: " + "; ".join(p["name"] for p in items) for cat, items in pois.items() if items)
+    return f"Verified real places nearby (PREFER these, use EXACT names):\n{lines}\n" if lines else ""
+
+
+def interest_propose(
+    city: str, num_days: int, interests: list[str], travelers: int, currency: str, lang: str, pois_text: str = ""
+) -> str:
     ints = ", ".join(interests) if interests else "general"
     return (
         f"City: {city}. Days: {num_days}. Interests: {ints}. Travelers: {travelers}.\n"
+        + pois_text +
         "Suggest 3-4 activities per day (you decide per day; real places, cluster nearby ones on the same day).\n"
         '"name" must be ONLY the official original name of the place (local language/English, findable on '
         'OpenStreetMap) — no descriptions, translations or extra words. Good: "Fontana di Trevi". '
@@ -33,10 +44,11 @@ def interest_propose(city: str, num_days: int, interests: list[str], travelers: 
     )
 
 
-def interest_revise(city: str, currency: str, objections: list[dict], lang: str) -> str:
+def interest_revise(city: str, currency: str, objections: list[dict], lang: str, pois_text: str = "") -> str:
     lines = "\n".join(f'- Day {o["day"]}: "{o["name"]}" — {o["reason"]}' for o in objections)
     return (
         f"City: {city}. Your proposal received these objections:\n{lines}\n"
+        + pois_text +
         "For EACH objected place suggest 1 alternative on the SAME day with a similar interest "
         "(matching the request: cheaper or closer).\n"
         '"name" must be ONLY the official original name (local/English), no extra words.\n'
@@ -71,6 +83,7 @@ def planner_say_system(lang: str) -> str:
 MESSAGES = {
     "en": {
         "start": "Preparing a {days}-day plan for {city} — 4 agents are starting.",
+        "poi_found": "Found {n} verified real places near {city} (Geoapify) — agents will prefer them.",
         "geocoding": "Locating places on the map (OpenStreetMap)...",
         "budget_ok": "Budget check: total cost ~{total} {cur}, budget {budget} {cur} — within budget, approved.",
         "budget_reason": "too expensive ({cost} {cur} per person) — need an alternative up to ~{target} {cur}",
@@ -87,6 +100,7 @@ MESSAGES = {
     },
     "az": {
         "start": "{city} üçün {days} günlük plan hazırlanır — 4 agent işə başlayır.",
+        "poi_found": "{city} yaxınlığında {n} təsdiqlənmiş real yer tapıldı (Geoapify) — agentlər onlara üstünlük verəcək.",
         "geocoding": "Yerlərin koordinatları tapılır (OpenStreetMap)...",
         "budget_ok": "Büdcə yoxlanışı: ümumi xərc ~{total} {cur}, büdcə {budget} {cur} — uyğundur, təsdiqləyirəm.",
         "budget_reason": "bahalıdır ({cost} {cur} adambaşı) — ~{target} {cur}-dək alternativ lazımdır",

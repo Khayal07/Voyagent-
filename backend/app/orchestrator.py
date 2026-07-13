@@ -13,6 +13,7 @@ from .llm.client import LLMResult
 from .llm.prompts import msg
 from .models import AgentMessage, Itinerary, Trip
 from .services.geocode import geocode, geocode_near
+from .services.poi import fetch_pois
 
 logger = logging.getLogger("voyagent.orchestrator")
 
@@ -57,6 +58,19 @@ async def set_status(session: AsyncSession, trip: Trip, status: str) -> None:
 
 
 MAX_KM_FROM_CENTER = 80
+
+
+def _apply_poi_coords(days: list[dict], pois: dict[str, list[dict]]) -> None:
+    """Geoapify namizədləri ilə ad uyğunluğu olan item-lara real koordinatı birbaşa yazır."""
+    index = {p["name"].casefold().strip(): (p["lat"], p["lon"]) for items in pois.values() for p in items}
+    if not index:
+        return
+    for d in days:
+        for item in d["items"]:
+            if item.get("lat") is None:
+                coords = index.get(item["name"].casefold().strip())
+                if coords is not None:
+                    item["lat"], item["lon"] = coords
 
 
 async def _geocode_days(days: list[dict], city: str, center: tuple[float, float] | None) -> None:
@@ -114,12 +128,19 @@ async def _run(session: AsyncSession, trip: Trip) -> None:
         {"lat": city_coords[0], "lon": city_coords[1]} if city_coords else None,
     )
 
+    # Real POI namizədləri (Geoapify) — açar yoxdursa/xəta olsa boş qalır, köhnə yol işləyir
+    pois = await fetch_pois(city_coords, list(trip.interests or [])) if city_coords else {}
+    if pois:
+        n = sum(len(v) for v in pois.values())
+        await emit(session, trip_id, "system", 0, "info", msg(lang, "poi_found", n=n, city=trip.city))
+
     # Raund 0: Interest Agent ilkin təklif
-    say, days, llm = await interest.propose(trip, num_days)
+    say, days, llm = await interest.propose(trip, num_days, pois)
     await note_fallback(session, trip_id, "interest", 0, llm, lang)
     await emit(session, trip_id, "interest", 0, "proposal", say, {"days": days})
 
     await emit(session, trip_id, "system", 0, "info", msg(lang, "geocoding"))
+    _apply_poi_coords(days, pois)
     await _geocode_days(days, trip.city, city_coords)
 
     # Negotiation dövrəsi
@@ -147,9 +168,15 @@ async def _run(session: AsyncSession, trip: Trip) -> None:
             await emit(session, trip_id, "system", round_no, "info", msg(lang, "max_rounds"))
             break
 
-        say, days, llm = await interest.revise(trip, days, objections)
+        # Yalnız etiraz olunan item-ların kateqoriyalarına aid POI-lər (token qənaəti)
+        obj_names = {o["name"].casefold() for o in objections}
+        obj_cats = {i["category"] for d in days for i in d["items"] if i["name"].casefold() in obj_names}
+        pois_trim = {c: pois[c] for c in obj_cats if c in pois}
+
+        say, days, llm = await interest.revise(trip, days, objections, pois_trim)
         await note_fallback(session, trip_id, "interest", round_no, llm, lang)
         await emit(session, trip_id, "interest", round_no, "revision", say, {"days": days})
+        _apply_poi_coords(days, pois)
         await _geocode_days(days, trip.city, city_coords)
 
     # Planner: yekun cədvəl

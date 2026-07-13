@@ -44,6 +44,7 @@ Backend API docs: http://localhost:8001/docs
 | `PRIMARY_PROVIDER` | `openai` (default) or `openrouter` |
 | `OPENAI_MODEL` | Default: `gpt-4o-mini` |
 | `OPENROUTER_MODEL` | Default: `openrouter/free` |
+| `GEOAPIFY_API_KEY` | Optional. Real POI candidates from [Geoapify Places](https://www.geoapify.com/) (free tier: 3,000 credits/day). If empty, the system falls back to LLM knowledge + Nominatim geocoding. |
 
 If the OpenAI call fails (rate limit, key error, timeout), the system automatically switches to OpenRouter — the switch is logged transparently both in the backend log and in the agent chat in the UI.
 
