@@ -31,9 +31,9 @@ cp .env.example .env
 docker compose up --build
 ```
 
-Sonra brauzerdə: **http://localhost:3000**
+Sonra brauzerdə: **http://localhost:8000**
 
-Backend API sənədləri: http://localhost:8000/docs
+Backend API sənədləri: http://localhost:8001/docs
 
 ### .env parametrləri
 

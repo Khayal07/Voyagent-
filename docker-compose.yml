@@ -19,7 +19,7 @@ services:
     environment:
       DATABASE_URL: postgresql+asyncpg://voyagent:voyagent@db:5432/voyagent
     ports:
-      - "8000:8000"
+      - "8001:8000"
     depends_on:
       db:
         condition: service_healthy
@@ -27,7 +27,7 @@ services:
   frontend:
     build: ./frontend
     ports:
-      - "3000:80"
+      - "8000:80"
     depends_on:
       - backend
 
