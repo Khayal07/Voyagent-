@@ -1,9 +1,32 @@
 import uuid
 from datetime import date, datetime
 
-from pydantic import BaseModel, Field, model_validator
+from pydantic import BaseModel, EmailStr, Field, model_validator
 
 MAX_TRIP_DAYS = 5
+
+
+class RegisterIn(BaseModel):
+    email: EmailStr
+    password: str = Field(min_length=8, max_length=100)
+
+
+class LoginIn(BaseModel):
+    email: EmailStr
+    password: str
+
+
+class TokenOut(BaseModel):
+    token: str
+    email: str
+
+
+class UserOut(BaseModel):
+    id: uuid.UUID
+    email: str
+    created_at: datetime
+
+    model_config = {"from_attributes": True}
 
 
 class TripCreate(BaseModel):

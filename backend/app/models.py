@@ -11,10 +11,22 @@ from .db import Base
 JSONColumn = JSON().with_variant(JSONB(), "postgresql")
 
 
+class User(Base):
+    __tablename__ = "users"
+
+    id: Mapped[uuid.UUID] = mapped_column(Uuid, primary_key=True, default=uuid.uuid4)
+    email: Mapped[str] = mapped_column(String(255), unique=True, index=True)
+    password_hash: Mapped[str] = mapped_column(String(100))
+    created_at: Mapped[datetime] = mapped_column(DateTime(timezone=True), server_default=func.now())
+
+    trips: Mapped[list["Trip"]] = relationship(back_populates="user")
+
+
 class Trip(Base):
     __tablename__ = "trips"
 
     id: Mapped[uuid.UUID] = mapped_column(Uuid, primary_key=True, default=uuid.uuid4)
+    user_id: Mapped[uuid.UUID | None] = mapped_column(ForeignKey("users.id"), index=True, nullable=True)
     city: Mapped[str] = mapped_column(String(100))
     start_date: Mapped[date] = mapped_column(Date)
     end_date: Mapped[date] = mapped_column(Date)
@@ -26,6 +38,7 @@ class Trip(Base):
     status: Mapped[str] = mapped_column(String(20), default="pending")
     created_at: Mapped[datetime] = mapped_column(DateTime(timezone=True), server_default=func.now())
 
+    user: Mapped["User | None"] = relationship(back_populates="trips")
     messages: Mapped[list["AgentMessage"]] = relationship(back_populates="trip", order_by="AgentMessage.id")
     itinerary: Mapped["Itinerary | None"] = relationship(back_populates="trip")
 

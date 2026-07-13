@@ -8,6 +8,7 @@ from sqlalchemy import text
 from . import models  # noqa: F401 — create_all üçün modellər qeydiyyata düşməlidir
 from .db import engine, init_db
 from .llm.client import LLMError, call_llm
+from .routers.auth import router as auth_router
 from .routers.trips import router as trips_router
 
 logging.basicConfig(level=logging.INFO, format="%(asctime)s %(name)s %(levelname)s %(message)s")
@@ -30,6 +31,7 @@ app.add_middleware(
     allow_headers=["*"],
 )
 
+app.include_router(auth_router)
 app.include_router(trips_router)
 
 

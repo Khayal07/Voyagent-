@@ -13,5 +13,8 @@ class Settings(BaseSettings):
     openai_model: str = "gpt-4o-mini"
     openrouter_model: str = "openrouter/free"
 
+    jwt_secret: str = "dev-secret-change-me-in-production-0000"
+    jwt_expire_days: int = 7
+
 
 settings = Settings()

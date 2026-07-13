@@ -12,6 +12,17 @@ export interface TripInput {
 export interface Trip extends TripInput {
   id: string;
   status: string;
+  created_at?: string;
+}
+
+export interface AuthResponse {
+  token: string;
+  email: string;
+}
+
+export interface TripDetail extends Trip {
+  messages: AgentMsg[];
+  itinerary: Itinerary | null;
 }
 
 export interface AgentMsg {

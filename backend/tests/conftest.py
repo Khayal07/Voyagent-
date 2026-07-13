@@ -55,6 +55,13 @@ async def client(engine, monkeypatch):
     app.dependency_overrides.clear()
 
 
+async def register_user(client, email="test@example.com", password="password123"):
+    """Qeydiyyatdan keçirib Bearer header qaytarır."""
+    resp = await client.post("/api/auth/register", json={"email": email, "password": password})
+    assert resp.status_code == 201, resp.text
+    return {"Authorization": f"Bearer {resp.json()['token']}"}
+
+
 def make_item(name="Colosseum", category="history", est_cost=20.0, duration_min=90, lat=None, lon=None, **kw):
     return {
         "name": name,

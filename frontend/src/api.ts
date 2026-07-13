@@ -1,16 +1,67 @@
-import type { AgentMsg, Itinerary, Trip, TripInput } from "./types";
+import type { AgentMsg, AuthResponse, Itinerary, Trip, TripDetail, TripInput } from "./types";
 
-export async function createTrip(input: TripInput): Promise<Trip> {
-  const resp = await fetch("/api/trips", {
-    method: "POST",
-    headers: { "Content-Type": "application/json" },
-    body: JSON.stringify(input),
+const TOKEN_KEY = "voyagent-token";
+const EMAIL_KEY = "voyagent-email";
+
+export function getToken(): string | null {
+  return localStorage.getItem(TOKEN_KEY);
+}
+
+export function getEmail(): string | null {
+  return localStorage.getItem(EMAIL_KEY);
+}
+
+export function setAuth(token: string, email: string) {
+  localStorage.setItem(TOKEN_KEY, token);
+  localStorage.setItem(EMAIL_KEY, email);
+}
+
+export function clearAuth() {
+  localStorage.removeItem(TOKEN_KEY);
+  localStorage.removeItem(EMAIL_KEY);
+}
+
+export class SessionExpiredError extends Error {}
+
+function authHeaders(): Record<string, string> {
+  const token = getToken();
+  return token ? { Authorization: `Bearer ${token}` } : {};
+}
+
+async function request<T>(url: string, init?: RequestInit): Promise<T> {
+  const resp = await fetch(url, {
+    ...init,
+    headers: { "Content-Type": "application/json", ...authHeaders(), ...init?.headers },
   });
+  if (resp.status === 401) {
+    clearAuth();
+    throw new SessionExpiredError();
+  }
   if (!resp.ok) {
     const body = await resp.json().catch(() => null);
     throw new Error(body?.detail?.[0]?.msg ?? body?.detail ?? "Request failed");
   }
   return resp.json();
+}
+
+export function register(email: string, password: string): Promise<AuthResponse> {
+  return request("/api/auth/register", { method: "POST", body: JSON.stringify({ email, password }) });
+}
+
+export function login(email: string, password: string): Promise<AuthResponse> {
+  return request("/api/auth/login", { method: "POST", body: JSON.stringify({ email, password }) });
+}
+
+export function createTrip(input: TripInput): Promise<Trip> {
+  return request("/api/trips", { method: "POST", body: JSON.stringify(input) });
+}
+
+export function listTrips(): Promise<Trip[]> {
+  return request("/api/trips");
+}
+
+export function getTrip(tripId: string): Promise<TripDetail> {
+  return request(`/api/trips/${tripId}`);
 }
 
 export interface StreamHandlers {
@@ -22,7 +73,9 @@ export interface StreamHandlers {
 }
 
 export function openTripStream(tripId: string, handlers: StreamHandlers): () => void {
-  const es = new EventSource(`/api/trips/${tripId}/stream`);
+  // EventSource header qoya bilmir — token query param ilə göndərilir
+  const token = getToken() ?? "";
+  const es = new EventSource(`/api/trips/${tripId}/stream?token=${encodeURIComponent(token)}`);
 
   es.addEventListener("agent_message", (e) => handlers.onMessage(JSON.parse(e.data)));
   es.addEventListener("status", (e) => handlers.onStatus(JSON.parse(e.data).status));
