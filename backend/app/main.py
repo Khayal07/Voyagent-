@@ -9,6 +9,7 @@ from . import models  # noqa: F401 — metadata qeydiyyatı üçün
 from .db import engine, run_migrations
 from .llm.client import LLMError, call_llm
 from .routers.auth import router as auth_router
+from .routers.rates import router as rates_router
 from .routers.trips import router as trips_router
 
 logging.basicConfig(level=logging.INFO, format="%(asctime)s %(name)s %(levelname)s %(message)s")
@@ -32,6 +33,7 @@ app.add_middleware(
 )
 
 app.include_router(auth_router)
+app.include_router(rates_router)
 app.include_router(trips_router)
 
 

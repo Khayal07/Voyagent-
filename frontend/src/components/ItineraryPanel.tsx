@@ -1,5 +1,6 @@
 import { useT } from "../i18n";
 import type { Itinerary } from "../types";
+import { useRates } from "../useRates";
 import { DAY_COLORS } from "./MapView";
 
 interface Props {
@@ -11,6 +12,7 @@ interface Props {
 
 export default function ItineraryPanel({ itinerary, currency, selectedDay, onSelectDay }: Props) {
   const t = useT();
+  const rates = useRates(currency);
   const visibleDays =
     selectedDay === 0 ? itinerary.days : itinerary.days.filter((d) => d.day === selectedDay);
 
@@ -84,6 +86,14 @@ export default function ItineraryPanel({ itinerary, currency, selectedDay, onSel
         <strong>
           {itinerary.total_cost} {currency}
         </strong>
+        {rates && (
+          <div className="mt-0.5 text-xs text-ink-soft">
+            ≈{" "}
+            {Object.entries(rates)
+              .map(([cur, rate]) => `${(itinerary.total_cost * rate).toFixed(2)} ${cur}`)
+              .join(" · ")}
+          </div>
+        )}
       </div>
     </div>
   );

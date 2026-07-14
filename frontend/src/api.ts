@@ -64,6 +64,10 @@ export function getTrip(tripId: string): Promise<TripDetail> {
   return request(`/api/trips/${tripId}`);
 }
 
+export function getRates(base: string): Promise<{ base: string; rates: Record<string, number> }> {
+  return request(`/api/rates?base=${encodeURIComponent(base)}`);
+}
+
 export interface StreamHandlers {
   onMessage: (msg: AgentMsg) => void;
   onStatus: (status: string) => void;
