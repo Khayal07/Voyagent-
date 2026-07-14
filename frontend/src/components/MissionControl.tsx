@@ -101,6 +101,7 @@ export default function MissionControl({
               onSelectDay={onSelectDay}
               onItineraryChange={onItineraryChange}
               onError={onError}
+              visible={mobileTab === "map"}
             />
           </div>
         </section>

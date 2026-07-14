@@ -1,5 +1,5 @@
 import { animate, motion, useMotionValue, useReducedMotion } from "motion/react";
-import { useEffect, useRef, useState } from "react";
+import { useEffect, useLayoutEffect, useRef, useState } from "react";
 import { useT } from "../../i18n";
 import { DAY_COLORS } from "../MapView";
 
@@ -84,12 +84,14 @@ export default function TimelineScrubber({ stops, onScrub, onSettle, onEngage, t
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [stops.length, tracking]);
 
-  // selectedDay dəyişəndə stops dəyişir — başa qaytar
-  useEffect(() => {
-    if (!tracking) {
-      x.set(0);
-      setActiveIdx(0);
-    }
+  // selectedDay/stops dəyişəndə başa qaytar. rAF: framer drag-constraint ölçməsi
+  // handle-i mərkəzləşdirdiyi üçün mövqeni layout keçidindən SONRA təyin edirik.
+  useLayoutEffect(() => {
+    if (tracking) return;
+    setActiveIdx(0);
+    engagedRef.current = false;
+    const id = requestAnimationFrame(() => x.set(0));
+    return () => cancelAnimationFrame(id);
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [stops]);
 

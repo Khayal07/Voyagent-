@@ -28,12 +28,6 @@
   --color-agent-planner: #5eb3e4;
   --color-agent-system: #7d8ca6;
 
-  /* Miqrasiya aliasları: köhnə mist/card/route istifadələri dərhal qaranlıq olur */
-  --color-mist: #10172a;
-  --color-card: #161f36;
-  --color-route: #00f2fe;
-  --color-route-deep: #0891b2;
-
   --shadow-glow-cyan: 0 0 10px rgb(0 242 254 / 0.35), 0 0 28px rgb(0 242 254 / 0.15);
   --shadow-glow-gold: 0 0 10px rgb(212 175 55 / 0.35), 0 0 28px rgb(212 175 55 / 0.15);
   --shadow-glow-alert: 0 0 12px rgb(255 51 102 / 0.5), 0 0 32px rgb(255 51 102 / 0.2);

@@ -21,6 +21,7 @@ interface Props {
   onSelectDay: (day: number) => void;
   onItineraryChange: (it: Itinerary) => void;
   onError: (detail: string) => void;
+  visible?: boolean; // mobil tab görünəndə Leaflet ölçünü yeniləməlidir
 }
 
 // Tam-ekran xəritə + üstündə glassmorphic HUD qatı
@@ -34,6 +35,7 @@ export default function MapCanvas({
   onSelectDay,
   onItineraryChange,
   onError,
+  visible = true,
 }: Props) {
   const t = useT();
   const mapRef = useRef<L.Map | null>(null);
@@ -51,6 +53,13 @@ export default function MapCanvas({
   useEffect(() => {
     fitEnabledRef.current = true;
   }, [selectedDay, trip.id]);
+
+  // display:none-dan çıxanda (mobil tab) Leaflet konteyner ölçüsünü yenidən oxumalıdır
+  useEffect(() => {
+    if (!visible) return;
+    const id = setTimeout(() => mapRef.current?.invalidateSize(), 60);
+    return () => clearTimeout(id);
+  }, [visible]);
 
   // Scrubber üçün xronoloji dayanacaqlar (yekun və ya canlı təklif)
   const stops = useMemo<ScrubStop[]>(() => {
