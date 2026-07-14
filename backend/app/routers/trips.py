@@ -8,13 +8,14 @@ from sqlalchemy import select
 from sqlalchemy.ext.asyncio import AsyncSession
 from sqlalchemy.orm import selectinload
 
+from ..agents import planner
 from ..auth import get_current_user
 from ..db import get_session
 from ..events import bus
 from ..models import AgentMessage, Trip, User
 from ..orchestrator import run_trip_planning
 from ..ratelimit import trip_limiter
-from ..schemas import TripCreate, TripDetail, TripOut
+from ..schemas import ItineraryOut, ItineraryUpdate, TripCreate, TripDetail, TripOut
 
 router = APIRouter(prefix="/api/trips", tags=["trips"])
 
@@ -66,6 +67,59 @@ async def get_trip(
     if trip is None or trip.user_id != user.id:
         raise HTTPException(status_code=404, detail="Trip tapılmadı")
     return trip
+
+
+@router.patch("/{trip_id}/itinerary", response_model=ItineraryOut)
+async def update_itinerary(
+    trip_id: uuid.UUID,
+    data: ItineraryUpdate,
+    session: AsyncSession = Depends(get_session),
+    user: User = Depends(get_current_user),
+):
+    """Drag&drop redaktəsi: yalnız mövcud item-ların yenidən düzülməsi/silinməsi.
+
+    Cədvəl deterministik yenidən qurulur (planner) — LLM çağırışı yoxdur.
+    """
+    result = await session.execute(
+        select(Trip).options(selectinload(Trip.itinerary)).where(Trip.id == trip_id)
+    )
+    trip = result.scalar_one_or_none()
+    if trip is None or trip.user_id != user.id or trip.itinerary is None:
+        raise HTTPException(status_code=404, detail="Trip tapılmadı")
+    if trip.status != "done":
+        raise HTTPException(status_code=409, detail="Plan hələ hazır deyil")
+
+    itinerary = trip.itinerary
+    stored_days = {d["day"]: d for d in itinerary.days}
+
+    if {d.day for d in data.days} != set(stored_days):
+        raise HTTPException(status_code=422, detail="Gün dəsti mövcud planla üst-üstə düşmür")
+
+    # Yalnız planda artıq olan item-lar qəbul edilir — kənardan item inject etmək mümkün deyil
+    pool = {i["name"].casefold(): i for d in itinerary.days for i in d["items"]}
+    used: set[str] = set()
+    new_days, weather = [], []
+    for d in sorted(data.days, key=lambda x: x.day):
+        items = []
+        for name in d.items:
+            key = name.casefold()
+            if key not in pool:
+                raise HTTPException(status_code=422, detail=f"Naməlum yer: {name}")
+            if key in used:
+                raise HTTPException(status_code=422, detail=f"Təkrarlanan yer: {name}")
+            used.add(key)
+            items.append(pool[key])
+        new_days.append({"day": d.day, "items": items})
+        weather.append(stored_days[d.day].get("weather"))
+    if not used:
+        raise HTTPException(status_code=422, detail="Ən azı bir yer qalmalıdır")
+
+    schedule, total_cost = planner.build_schedule(trip, new_days, weather=weather, lodging=itinerary.lodging)
+    itinerary.days = schedule
+    itinerary.total_cost = total_cost
+    await session.commit()
+    await session.refresh(itinerary)
+    return itinerary
 
 
 @router.get("/{trip_id}/stream")

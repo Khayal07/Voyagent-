@@ -1,9 +1,9 @@
-"""Trips API: yaratma, validasiya, 404, sahiblik və SSE replay."""
+"""Trips API: yaratma, validasiya, 404, sahiblik, SSE replay və itinerary redaktəsi."""
 
 import uuid
 from datetime import date
 
-from app.models import AgentMessage, Trip
+from app.models import AgentMessage, Itinerary, Trip
 
 from .conftest import register_user
 
@@ -128,3 +128,105 @@ async def test_stream_unknown_trip_404(client):
     headers = await register_user(client)
     resp = await client.get(f"/api/trips/{uuid.uuid4()}/stream", headers=headers)
     assert resp.status_code == 404
+
+
+# ---- PATCH /api/trips/{id}/itinerary ----
+
+LODGING = {"nightly": 80.0, "nights": 1, "rooms": 1, "total": 80.0}
+WEATHER_D1 = {"code": 61, "t_max": 24, "t_min": 15, "precip": 70}
+
+
+def sched_item(name, cost=10.0, start="09:30"):
+    return {
+        "name": name, "category": "history", "est_cost": cost, "duration_min": 60,
+        "lat": 41.9, "lon": 12.5, "start_time": start, "wiki": f"en:{name}",
+    }
+
+
+async def make_planned_trip(session, user_id, status="done"):
+    trip = Trip(
+        city="Rome", start_date=date(2026, 7, 20), end_date=date(2026, 7, 21),
+        budget=500.0, currency="USD", travelers=1, interests=[], language="en",
+        status=status, user_id=user_id,
+    )
+    session.add(trip)
+    await session.commit()
+    itin = Itinerary(
+        trip_id=trip.id,
+        days=[
+            {"day": 1, "date": "2026-07-20", "weather": WEATHER_D1,
+             "items": [sched_item("Colosseum", 20.0), sched_item("Pantheon", 10.0, "11:00")]},
+            {"day": 2, "date": "2026-07-21", "weather": None,
+             "items": [sched_item("Trevi", 5.0)]},
+        ],
+        total_cost=115.0,  # 35 aktivlik + 80 otel
+        lodging=LODGING,
+    )
+    session.add(itin)
+    await session.commit()
+    return trip
+
+
+async def test_patch_reorder_recomputes_times(client, session):
+    headers = await register_user(client)
+    trip = await make_planned_trip(session, await owner_id(client, headers))
+    body = {"days": [{"day": 1, "items": ["Pantheon", "Colosseum"]}, {"day": 2, "items": ["Trevi"]}]}
+    resp = await client.patch(f"/api/trips/{trip.id}/itinerary", json=body, headers=headers)
+    assert resp.status_code == 200
+    data = resp.json()
+    d1 = data["days"][0]["items"]
+    assert [i["name"] for i in d1] == ["Pantheon", "Colosseum"]
+    assert d1[0]["start_time"] == "09:30"  # cədvəl yenidən qurulur
+    assert data["total_cost"] == 115.0  # xərc dəyişmir
+    assert data["days"][0]["weather"] == WEATHER_D1  # hava qorunur
+    assert d1[0]["wiki"] == "en:Pantheon"  # wiki qorunur
+
+
+async def test_patch_move_across_days(client, session):
+    headers = await register_user(client)
+    trip = await make_planned_trip(session, await owner_id(client, headers))
+    body = {"days": [{"day": 1, "items": ["Colosseum"]}, {"day": 2, "items": ["Trevi", "Pantheon"]}]}
+    resp = await client.patch(f"/api/trips/{trip.id}/itinerary", json=body, headers=headers)
+    assert resp.status_code == 200
+    assert [i["name"] for i in resp.json()["days"][1]["items"]] == ["Trevi", "Pantheon"]
+
+
+async def test_patch_delete_item_drops_total_keeps_lodging(client, session):
+    headers = await register_user(client)
+    trip = await make_planned_trip(session, await owner_id(client, headers))
+    body = {"days": [{"day": 1, "items": ["Pantheon"]}, {"day": 2, "items": ["Trevi"]}]}
+    resp = await client.patch(f"/api/trips/{trip.id}/itinerary", json=body, headers=headers)
+    assert resp.status_code == 200
+    data = resp.json()
+    assert data["total_cost"] == 95.0  # 15 aktivlik + 80 otel
+    assert data["lodging"] == LODGING
+
+
+async def test_patch_validation_422(client, session):
+    headers = await register_user(client)
+    trip = await make_planned_trip(session, await owner_id(client, headers))
+    cases = [
+        {"days": [{"day": 1, "items": ["Yad Yer"]}, {"day": 2, "items": ["Trevi"]}]},  # naməlum ad
+        {"days": [{"day": 1, "items": ["Trevi"]}, {"day": 2, "items": ["Trevi"]}]},  # dublikat
+        {"days": [{"day": 1, "items": ["Colosseum"]}]},  # yanlış gün dəsti
+        {"days": [{"day": 1, "items": []}, {"day": 2, "items": []}]},  # boş plan
+    ]
+    for body in cases:
+        resp = await client.patch(f"/api/trips/{trip.id}/itinerary", json=body, headers=headers)
+        assert resp.status_code == 422, body
+
+
+async def test_patch_ownership_and_status(client, session):
+    headers_a = await register_user(client, email="a@example.com")
+    headers_b = await register_user(client, email="b@example.com")
+    trip = await make_planned_trip(session, await owner_id(client, headers_a))
+    body = {"days": [{"day": 1, "items": ["Colosseum", "Pantheon"]}, {"day": 2, "items": ["Trevi"]}]}
+
+    resp = await client.patch(f"/api/trips/{trip.id}/itinerary", json=body, headers=headers_b)
+    assert resp.status_code == 404  # özgə trip
+    resp = await client.patch(f"/api/trips/{trip.id}/itinerary", json=body)
+    assert resp.status_code == 401  # auth-suz
+
+    planning = await make_planned_trip(session, await owner_id(client, headers_a), status="planning")
+    resp = await client.patch(f"/api/trips/{planning.id}/itinerary", json=body, headers=headers_a)
+    assert resp.status_code == 409  # plan hazır deyil

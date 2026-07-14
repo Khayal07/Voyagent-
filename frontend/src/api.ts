@@ -68,6 +68,16 @@ export function getRates(base: string): Promise<{ base: string; rates: Record<st
   return request(`/api/rates?base=${encodeURIComponent(base)}`);
 }
 
+export function patchItinerary(
+  tripId: string,
+  days: { day: number; items: string[] }[],
+): Promise<Itinerary> {
+  return request(`/api/trips/${tripId}/itinerary`, {
+    method: "PATCH",
+    body: JSON.stringify({ days }),
+  });
+}
+
 export interface StreamHandlers {
   onMessage: (msg: AgentMsg) => void;
   onStatus: (status: string) => void;

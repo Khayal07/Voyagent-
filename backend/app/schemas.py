@@ -60,6 +60,15 @@ class AgentMessageOut(BaseModel):
     model_config = {"from_attributes": True}
 
 
+class ItineraryDayUpdate(BaseModel):
+    day: int = Field(ge=1)
+    items: list[str] = Field(max_length=10)
+
+
+class ItineraryUpdate(BaseModel):
+    days: list[ItineraryDayUpdate] = Field(min_length=1, max_length=10)
+
+
 class ItineraryOut(BaseModel):
     days: list
     total_cost: float

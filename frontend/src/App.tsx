@@ -230,6 +230,10 @@ export default function App() {
                       currency={trip.currency}
                       selectedDay={selectedDay}
                       onSelectDay={setSelectedDay}
+                      tripId={trip.id}
+                      editable={status === "done"}
+                      onChange={setItinerary}
+                      onError={setError}
                     />
                   )}
                 </div>
