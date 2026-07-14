@@ -2,18 +2,41 @@
 @import "leaflet/dist/leaflet.css";
 
 @theme {
-  --color-ink: #0e2e33;
-  --color-ink-soft: #33565c;
-  --color-mist: #ecf1ee;
-  --color-card: #fbfdfc;
-  --color-line: #c9d6d1;
-  --color-route: #e4572e;
-  --color-route-deep: #c74522;
-  --color-agent-interest: #7c5cbf;
-  --color-agent-budget: #2e933c;
-  --color-agent-logistics: #d98e04;
-  --color-agent-planner: #2274a5;
-  --color-agent-system: #6b7a77;
+  /* Səthlər */
+  --color-void: #0b0f19;
+  --color-panel: #10172a;
+  --color-panel-2: #161f36;
+  --color-line: #1e2a44;
+  --color-grid: #131c31;
+
+  /* Mətn (token adları köhnə class-larla uyumlu qalır) */
+  --color-ink: #e6edf7;
+  --color-ink-soft: #8b99b4;
+
+  /* Aksentlər */
+  --color-cyan: #00f2fe;
+  --color-cyan-dim: #0891b2;
+  --color-gold: #d4af37;
+  --color-gold-soft: #efd98b;
+  --color-alert: #ff3366;
+  --color-ok: #3fe0a0;
+
+  /* Agent rəngləri — qaranlıq fon üçün açıqlaşdırılıb */
+  --color-agent-interest: #a78bfa;
+  --color-agent-budget: #4ade80;
+  --color-agent-logistics: #f5b841;
+  --color-agent-planner: #5eb3e4;
+  --color-agent-system: #7d8ca6;
+
+  /* Miqrasiya aliasları: köhnə mist/card/route istifadələri dərhal qaranlıq olur */
+  --color-mist: #10172a;
+  --color-card: #161f36;
+  --color-route: #00f2fe;
+  --color-route-deep: #0891b2;
+
+  --shadow-glow-cyan: 0 0 10px rgb(0 242 254 / 0.35), 0 0 28px rgb(0 242 254 / 0.15);
+  --shadow-glow-gold: 0 0 10px rgb(212 175 55 / 0.35), 0 0 28px rgb(212 175 55 / 0.15);
+  --shadow-glow-alert: 0 0 12px rgb(255 51 102 / 0.5), 0 0 32px rgb(255 51 102 / 0.2);
 
   --font-display: "Bricolage Grotesque", sans-serif;
   --font-body: "Archivo", sans-serif;
@@ -21,7 +44,23 @@
 }
 
 body {
-  @apply bg-mist text-ink font-body antialiased;
+  @apply bg-void text-ink font-body antialiased;
+  background-image: radial-gradient(1200px 800px at 70% -10%, #131c31 0%, #0b0f19 55%);
+  background-attachment: fixed;
+}
+
+/* Glassmorphic HUD səthi */
+.hud-glass {
+  background: rgb(16 23 42 / 0.62);
+  backdrop-filter: blur(8px) saturate(1.3);
+  -webkit-backdrop-filter: blur(8px) saturate(1.3);
+  border: 1px solid rgb(0 242 254 / 0.12);
+  border-radius: 0.75rem;
+}
+@supports not (backdrop-filter: blur(1px)) {
+  .hud-glass {
+    background: rgb(16 23 42 / 0.92);
+  }
 }
 
 /* Dispatch log-un waypoint-lərini birləşdirən qırıq marşrut xətti */
@@ -40,8 +79,97 @@ body {
 .typing-dot:nth-child(2) { animation-delay: 0.2s; }
 .typing-dot:nth-child(3) { animation-delay: 0.4s; }
 
+/* Agent node radar süpürməsi */
+@keyframes radar-sweep {
+  to { transform: rotate(360deg); }
+}
+.radar-sweep {
+  background: conic-gradient(from 0deg, rgb(0 242 254 / 0.5), transparent 60deg);
+  animation: radar-sweep 2.4s linear infinite;
+}
+
+/* Geotag sonar dalğası */
+@keyframes sonar {
+  0% { transform: scale(0.3); opacity: 0.85; }
+  100% { transform: scale(2.6); opacity: 0; }
+}
+.sonar-ring {
+  animation: sonar 1.2s ease-out 2;
+}
+
+/* Marker düşmə effekti */
+@keyframes geo-drop {
+  0% { transform: translateY(-22px) scale(0.7); opacity: 0; }
+  60% { transform: translateY(2px) scale(1.05); opacity: 1; }
+  100% { transform: translateY(0) scale(1); }
+}
+.geo-drop {
+  animation: geo-drop 450ms cubic-bezier(0.34, 1.56, 0.64, 1);
+}
+
+/* Marşrut xəttində axan tirələr (hərəkət istiqaməti = nöqtə sırası) */
+@keyframes march {
+  to { stroke-dashoffset: -32; }
+}
+.route-flow {
+  stroke-dasharray: 10 12;
+  animation: march 1.2s linear infinite;
+}
+
+@keyframes caret-blink {
+  0%, 49% { opacity: 1; }
+  50%, 100% { opacity: 0; }
+}
+.stream-caret {
+  animation: caret-blink 1s steps(1) infinite;
+}
+
+/* Etiraz edən agent node-un halqası */
+@keyframes alert-flash {
+  0%, 100% { box-shadow: var(--shadow-glow-alert); border-color: var(--color-alert); }
+  50% { box-shadow: none; border-color: rgb(255 51 102 / 0.4); }
+}
+.alert-flash {
+  animation: alert-flash 0.9s ease-in-out infinite;
+}
+
+/* Leaflet qaranlıq tema override-ləri */
+.leaflet-container {
+  background: #0b0f19;
+}
+.leaflet-popup-content-wrapper,
+.leaflet-popup-tip {
+  background: #10172a;
+  color: #e6edf7;
+}
+.leaflet-bar a {
+  background: #10172a;
+  color: #e6edf7;
+  border-bottom-color: #1e2a44;
+}
+.leaflet-bar a:hover,
+.leaflet-bar a:focus {
+  background: #161f36;
+  color: #00f2fe;
+}
+.leaflet-control-attribution {
+  background: rgb(11 15 25 / 0.7) !important;
+  color: rgb(230 237 247 / 0.5) !important;
+}
+.leaflet-control-attribution a {
+  color: rgb(0 242 254 / 0.6) !important;
+}
+
 @media (prefers-reduced-motion: reduce) {
-  .typing-dot { animation: none; }
+  .typing-dot,
+  .radar-sweep,
+  .sonar-ring,
+  .geo-drop,
+  .route-flow,
+  .stream-caret,
+  .alert-flash {
+    animation: none;
+  }
 }
 
 /* Çap görünüşü: ekran ağacı gizlənir, yalnız PrintableItinerary çıxır */
@@ -50,6 +178,11 @@ body {
 }
 
 @media print {
+  body {
+    background: #fff !important;
+    background-image: none !important;
+    color: #000 !important;
+  }
   .app-screen {
     display: none;
   }

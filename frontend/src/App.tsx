@@ -121,7 +121,7 @@ export default function App() {
           onClick={() => setLang(l)}
           aria-pressed={lang === l}
           className={`px-2.5 py-1.5 transition-colors ${
-            lang === l ? "bg-ink text-mist" : "text-ink-soft hover:text-ink"
+            lang === l ? "bg-cyan text-void" : "text-ink-soft hover:text-ink"
           }`}
         >
           {l.toUpperCase()}
@@ -134,10 +134,10 @@ export default function App() {
     <LangContext.Provider value={{ lang, setLang }}>
       {trip && itinerary && <PrintableItinerary trip={trip} itinerary={itinerary} />}
       <div className="app-screen mx-auto flex min-h-screen max-w-6xl flex-col px-4 py-6">
-        <header className="mb-6 flex items-end justify-between border-b-2 border-ink pb-4">
+        <header className="relative mb-6 flex items-end justify-between pb-4 after:absolute after:inset-x-0 after:bottom-0 after:h-px after:bg-[linear-gradient(90deg,transparent,rgb(0_242_254/0.5),transparent)]">
           <div>
             <h1 className="font-display text-3xl font-extrabold tracking-tight">
-              Voyagent<span className="text-route">.</span>
+              Voyagent<span className="text-cyan drop-shadow-[0_0_6px_rgb(0_242_254/0.6)]">.</span>
             </h1>
             <p className="font-mono text-[11px] tracking-[0.25em] text-ink-soft">{t.tagline}</p>
           </div>
@@ -182,7 +182,7 @@ export default function App() {
         </header>
 
         {error && (
-          <div className="mb-4 rounded-md border border-route bg-route/10 px-4 py-3 text-sm text-route-deep">
+          <div className="mb-4 rounded-md border border-alert/40 bg-alert/10 px-4 py-3 text-sm text-alert">
             {error}
           </div>
         )}
