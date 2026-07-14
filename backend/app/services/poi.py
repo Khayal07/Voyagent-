@@ -14,8 +14,9 @@ RADIUS_M = 7000
 PER_CATEGORY = 8
 MAX_NAME_LEN = 60
 # Böyük hovuzdan məşhurluğa görə seçirik: OSM name:* tərcümə sayı + wiki tagı
-POOL_LIMIT = 200
+POOL_LIMIT = 500
 MIN_SPACING_M = 250
+BRAND_PENALTY = -10
 
 # Voyagent maraq kateqoriyaları → Geoapify kateqoriya id-ləri
 CATEGORY_MAP = {
@@ -32,7 +33,7 @@ _cache: dict[tuple[float, float, str], list[dict]] = {}
 
 
 def _fame(props: dict) -> int:
-    """Məşhurluq balı: OSM name:* tərcümə sayı + wikipedia/wikidata tagı."""
+    """Məşhurluq balı: OSM name:* tərcümə sayı + wikipedia/wikidata tagı; şəbəkə brendlər cəzalanır."""
     raw = (props.get("datasource") or {}).get("raw") or {}
     langs = sum(1 for k in raw if k.startswith("name:"))
     has_wiki = (
@@ -40,7 +41,8 @@ def _fame(props: dict) -> int:
         or raw.get("wikipedia")
         or raw.get("wikidata")
     )
-    return langs + (2 if has_wiki else 0)
+    penalty = BRAND_PENALTY if raw.get("brand") else 0
+    return langs + (2 if has_wiki else 0) + penalty
 
 
 def _dist_m(a: tuple[float, float], b: tuple[float, float]) -> float:

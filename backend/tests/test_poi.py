@@ -128,6 +128,17 @@ async def test_min_spacing_drops_clustered_pois(monkeypatch):
     assert "Far Basilica" in names
 
 
+async def test_brand_chains_rank_last(monkeypatch):
+    # Starbucks kimi şəbəkələr çox name:* tərcüməsinə malikdir — brand tagı cəzalandırılır
+    feats = spread([
+        feature("Starbucks", raw={"brand": "Starbucks", "name:en": "a", "name:az": "b", "name:fr": "c"}),
+        feature("Local Bistro"),
+    ])
+    patch_transport(monkeypatch, lambda r: httpx.Response(200, json={"features": feats}))
+    result = await poi.fetch_pois((41.9, 12.5), ["food"])
+    assert [p["name"] for p in result["food"]] == ["Local Bistro", "Starbucks"]
+
+
 async def test_request_has_proximity_bias_and_pool_limit(monkeypatch):
     seen = {}
 
