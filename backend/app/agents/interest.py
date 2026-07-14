@@ -41,9 +41,17 @@ def normalize_days(raw_days: list, num_days: int) -> list[dict]:
     return days
 
 
+def _parse_hotel_nightly(raw) -> float | None:
+    try:
+        nightly = round(float(raw), 2)
+    except (TypeError, ValueError):
+        return None
+    return nightly if 0 < nightly <= 10000 else None
+
+
 async def propose(
     trip: Trip, num_days: int, pois: dict[str, list[dict]] | None = None, weather_text: str = ""
-) -> tuple[str, list[dict], LLMResult]:
+) -> tuple[str, list[dict], float | None, LLMResult]:
     data, llm = await ask_json(
         prompts.INTEREST_SYSTEM,
         prompts.interest_propose(
@@ -53,7 +61,8 @@ async def propose(
         max_tokens=1500,
     )
     say = str(data.get("say", prompts.msg(trip.language, "say_propose_default"))).strip()
-    return say, normalize_days(data.get("days", []), num_days), llm
+    hotel_nightly = _parse_hotel_nightly(data.get("hotel_nightly_est"))
+    return say, normalize_days(data.get("days", []), num_days), hotel_nightly, llm
 
 
 async def revise(

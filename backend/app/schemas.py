@@ -63,6 +63,7 @@ class AgentMessageOut(BaseModel):
 class ItineraryOut(BaseModel):
     days: list
     total_cost: float
+    lodging: dict | None = None
 
     model_config = {"from_attributes": True}
 

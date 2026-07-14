@@ -81,7 +81,7 @@ async def test_happy_path(session, patched):
 
     async def fake_propose(trip, num_days, pois=None, weather_text=""):
         captured["weather_text"] = weather_text
-        return "my proposal", cheap_days(), None
+        return "my proposal", cheap_days(), 80.0, None
 
     patched.setattr(orch.interest, "propose", fake_propose)
 
@@ -98,7 +98,9 @@ async def test_happy_path(session, patched):
     assert not any(r == "objection" for _, r in rs)
 
     itin = (await session.execute(select(Itinerary).where(Itinerary.trip_id == trip.id))).scalar_one()
-    assert itin.total_cost == 35.0
+    # aktivliklər 35 + otel (1 gecə × 1 otaq × 80) = 115
+    assert itin.total_cost == 115.0
+    assert itin.lodging == {"nightly": 80.0, "nights": 1, "rooms": 1, "total": 80.0}
     assert trip.status == "done"
 
     # hava: gün 1 proqnozla saxlanılır, gün 2 None; precip 70 → yağış hint-i prompt-a gedir
@@ -112,7 +114,7 @@ async def test_over_budget_triggers_revision(session, patched):
                  {"day": 2, "items": [make_item(name="Trevi", est_cost=5, lat=41.901, lon=12.483)]}]
 
     async def fake_propose(trip, num_days, pois=None, weather_text=""):
-        return "proposal", expensive, None
+        return "proposal", expensive, None, None
 
     async def fake_revise(trip, days, objections, pois=None):
         return "revised", cheap_days(), None

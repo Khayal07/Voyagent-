@@ -41,6 +41,29 @@ def make_trip():
     return Trip(city="Rome", budget=100.0, travelers=1, currency="USD", language="en", interests=[])
 
 
+def test_parse_hotel_nightly():
+    assert interest._parse_hotel_nightly(85.5) == 85.5
+    assert interest._parse_hotel_nightly("120") == 120.0
+    assert interest._parse_hotel_nightly(None) is None
+    assert interest._parse_hotel_nightly("bahalı") is None
+    assert interest._parse_hotel_nightly(0) is None
+    assert interest._parse_hotel_nightly(99999) is None
+
+
+async def test_propose_returns_hotel_estimate(monkeypatch):
+    async def fake_ask_json(system, user, max_tokens, temperature=0.7):
+        return {
+            "say": "ok",
+            "days": [{"day": 1, "items": [{"name": "Colosseum"}]}],
+            "hotel_nightly_est": 95,
+        }, None
+
+    monkeypatch.setattr(interest, "ask_json", fake_ask_json)
+    say, days, hotel_nightly, _ = await interest.propose(make_trip(), 1)
+    assert hotel_nightly == 95.0
+    assert days[0]["items"][0]["name"] == "Colosseum"
+
+
 async def test_revise_replaces_objected_item(monkeypatch):
     days = [{"day": 1, "items": [make_item(name="Expensive", est_cost=90)]}]
     objections = [{"day": 1, "name": "Expensive", "reason": "too expensive"}]

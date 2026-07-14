@@ -56,7 +56,15 @@ export interface ItineraryDay {
   } | null;
 }
 
+export interface Lodging {
+  nightly: number;
+  nights: number;
+  rooms: number;
+  total: number;
+}
+
 export interface Itinerary {
   days: ItineraryDay[];
   total_cost: number;
+  lodging?: Lodging | null;
 }

@@ -1,5 +1,7 @@
 """Budget Agent: xərc hesablanması kodda aparılır, LLM yalnız qısa etiraz mesajı üçün istifadə olunur."""
 
+from math import ceil
+
 from ..llm import prompts
 from ..llm.client import LLMResult
 from ..models import Trip
@@ -8,11 +10,26 @@ from .base import ask_text
 MIN_TARGET_COST = 5.0
 
 
-def check(trip: Trip, days: list[dict]) -> tuple[bool, float, list[dict]]:
+def lodging_block(trip: Trip, nightly: float) -> dict | None:
+    """Otel xərci bloku: gecə sayı × otaq sayı × gecəlik qiymət. Eyni günlük trip-də None."""
+    nights = (trip.end_date - trip.start_date).days
+    if nights <= 0:
+        return None
+    rooms = ceil(trip.travelers / 2)
+    return {
+        "nightly": round(nightly, 2),
+        "nights": nights,
+        "rooms": rooms,
+        "total": round(nightly * nights * rooms, 2),
+    }
+
+
+def check(trip: Trip, days: list[dict], lodging: dict | None = None) -> tuple[bool, float, list[dict]]:
     """(uyğundur?, ümumi xərc, etirazlar). Ən bahalı item-lar aşım qapanana qədər etiraz alır."""
     travelers = trip.travelers
     budget = float(trip.budget)
-    total = round(sum(i["est_cost"] for d in days for i in d["items"]) * travelers, 2)
+    activities = sum(i["est_cost"] for d in days for i in d["items"]) * travelers
+    total = round(activities + (lodging["total"] if lodging else 0), 2)
     if total <= budget:
         return True, total, []
 
@@ -40,8 +57,11 @@ def check(trip: Trip, days: list[dict]) -> tuple[bool, float, list[dict]]:
     return False, total, objections
 
 
-def approval_message(trip: Trip, total: float) -> str:
-    return prompts.msg(trip.language, "budget_ok", total=total, budget=float(trip.budget), cur=trip.currency)
+def approval_message(trip: Trip, total: float, lodging: dict | None = None) -> str:
+    text = prompts.msg(trip.language, "budget_ok", total=total, budget=float(trip.budget), cur=trip.currency)
+    if lodging:
+        text += " " + prompts.msg(trip.language, "lodging_part", total=lodging["total"], cur=trip.currency)
+    return text
 
 
 async def objection_message(trip: Trip, total: float, objections: list[dict]) -> tuple[str, LLMResult | None]:

@@ -87,6 +87,12 @@ export default function ItineraryPanel({ itinerary, currency, selectedDay, onSel
         ))}
       </div>
 
+      {itinerary.lodging && (
+        <div className="border-t border-line px-4 py-2 text-right font-mono text-xs text-ink-soft">
+          {t.lodging}: {itinerary.lodging.nights} {t.nights} × {itinerary.lodging.rooms} {t.rooms} ×{" "}
+          {itinerary.lodging.nightly} {currency} = {itinerary.lodging.total} {currency}
+        </div>
+      )}
       <div className="border-t border-line px-4 py-3 text-right font-mono text-sm">
         {t.totalCost}:{" "}
         <strong>

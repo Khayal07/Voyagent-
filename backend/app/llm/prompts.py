@@ -41,7 +41,8 @@ def interest_propose(
         f'"say" must be 1-2 sentences in {_lang_name(lang)} explaining what you picked and why.\n'
         'JSON: {"say": "...", "days": [{"day": 1, "items": '
         '[{"name": "...", "category": "history|nature|food|nightlife|art|shopping|other", '
-        f'"est_cost": <per person, {currency}>, "duration_min": <int>, "lat": <approx>, "lon": <approx>}}]}}]}}'
+        f'"est_cost": <per person, {currency}>, "duration_min": <int>, "lat": <approx>, "lon": <approx>}}]}}], '
+        f'"hotel_nightly_est": <typical mid-range double room per night in {city}, {currency}, number>}}'
     )
 
 
@@ -87,6 +88,7 @@ MESSAGES = {
         "poi_found": "Found {n} verified real places near {city} (Geoapify) — agents will prefer them.",
         "weather": "Weather forecast for {city}: {parts} (Open-Meteo).",
         "day_label": "Day",
+        "lodging_part": "(incl. hotel est. {total} {cur})",
         "geocoding": "Locating places on the map (OpenStreetMap)...",
         "budget_ok": "Budget check: total cost ~{total} {cur}, budget {budget} {cur} — within budget, approved.",
         "budget_reason": "too expensive ({cost} {cur} per person) — need an alternative up to ~{target} {cur}",
@@ -106,6 +108,7 @@ MESSAGES = {
         "poi_found": "{city} yaxınlığında {n} təsdiqlənmiş real yer tapıldı (Geoapify) — agentlər onlara üstünlük verəcək.",
         "weather": "{city} üçün hava proqnozu: {parts} (Open-Meteo).",
         "day_label": "Gün",
+        "lodging_part": "(otel təxmini {total} {cur} daxil)",
         "geocoding": "Yerlərin koordinatları tapılır (OpenStreetMap)...",
         "budget_ok": "Büdcə yoxlanışı: ümumi xərc ~{total} {cur}, büdcə {budget} {cur} — uyğundur, təsdiqləyirəm.",
         "budget_reason": "bahalıdır ({cost} {cur} adambaşı) — ~{target} {cur}-dək alternativ lazımdır",

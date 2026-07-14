@@ -152,8 +152,9 @@ async def _run(session: AsyncSession, trip: Trip) -> None:
         if rainy else ""
     )
 
-    # Raund 0: Interest Agent ilkin təklif
-    say, days, llm = await interest.propose(trip, num_days, pois, weather_text=weather_hint)
+    # Raund 0: Interest Agent ilkin təklif (otel təxmini eyni çağırışdan gəlir — əlavə LLM xərci yoxdur)
+    say, days, hotel_nightly, llm = await interest.propose(trip, num_days, pois, weather_text=weather_hint)
+    lodging = budget.lodging_block(trip, hotel_nightly) if hotel_nightly else None
     await note_fallback(session, trip_id, "interest", 0, llm, lang)
     await emit(session, trip_id, "interest", 0, "proposal", say, {"days": days})
 
@@ -163,9 +164,9 @@ async def _run(session: AsyncSession, trip: Trip) -> None:
 
     # Negotiation dövrəsi
     for round_no in range(1, MAX_ROUNDS + 2):
-        budget_ok, total, budget_objs = budget.check(trip, days)
+        budget_ok, total, budget_objs = budget.check(trip, days, lodging=lodging)
         if budget_ok:
-            await emit(session, trip_id, "budget", round_no, "approval", budget.approval_message(trip, total))
+            await emit(session, trip_id, "budget", round_no, "approval", budget.approval_message(trip, total, lodging))
         else:
             obj_msg, b_llm = await budget.objection_message(trip, total, budget_objs)
             await note_fallback(session, trip_id, "budget", round_no, b_llm, lang)
@@ -198,14 +199,17 @@ async def _run(session: AsyncSession, trip: Trip) -> None:
         await _geocode_days(days, trip.city, city_coords)
 
     # Planner: yekun cədvəl
-    schedule, total_cost = planner.build_schedule(trip, days, weather=weather)
+    schedule, total_cost = planner.build_schedule(trip, days, weather=weather, lodging=lodging)
     say, p_llm = await planner.summary_message(trip, schedule, total_cost)
     await note_fallback(session, trip_id, "planner", 99, p_llm, lang)
-    await emit(session, trip_id, "planner", 99, "final", say, {"days": schedule, "total_cost": total_cost})
+    await emit(
+        session, trip_id, "planner", 99, "final", say,
+        {"days": schedule, "total_cost": total_cost, "lodging": lodging},
+    )
 
-    session.add(Itinerary(trip_id=trip_id, days=schedule, total_cost=total_cost))
+    session.add(Itinerary(trip_id=trip_id, days=schedule, total_cost=total_cost, lodging=lodging))
     await session.commit()
-    await bus.publish(str(trip_id), "itinerary", {"days": schedule, "total_cost": total_cost})
+    await bus.publish(str(trip_id), "itinerary", {"days": schedule, "total_cost": total_cost, "lodging": lodging})
 
     await set_status(session, trip, "done")
     await bus.publish(str(trip_id), "done", {})

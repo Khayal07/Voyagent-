@@ -14,7 +14,7 @@ DEFAULT_TRAVEL_MIN = 30
 
 
 def build_schedule(
-    trip: Trip, days: list[dict], weather: list[dict | None] | None = None
+    trip: Trip, days: list[dict], weather: list[dict | None] | None = None, lodging: dict | None = None
 ) -> tuple[list[dict], float]:
     """Hər günə başlama vaxtları verir; gecə həyatı günün sonuna keçirilir."""
     result_days = []
@@ -36,7 +36,8 @@ def build_schedule(
         })
         current_date += timedelta(days=1)
 
-    total_cost = round(sum(i["est_cost"] for d in days for i in d["items"]) * trip.travelers, 2)
+    activities = sum(i["est_cost"] for d in days for i in d["items"]) * trip.travelers
+    total_cost = round(activities + (lodging["total"] if lodging else 0), 2)
     return result_days, total_cost
 
 

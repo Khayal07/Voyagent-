@@ -73,5 +73,6 @@ class Itinerary(Base):
     trip_id: Mapped[uuid.UUID] = mapped_column(ForeignKey("trips.id", ondelete="CASCADE"), unique=True)
     days: Mapped[list] = mapped_column(JSONColumn, default=list)
     total_cost: Mapped[float] = mapped_column(Numeric(10, 2), default=0)
+    lodging: Mapped[dict | None] = mapped_column(JSONColumn, nullable=True)
 
     trip: Mapped[Trip] = relationship(back_populates="itinerary")
