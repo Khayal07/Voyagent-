@@ -47,6 +47,9 @@ def patched(monkeypatch):
     async def fake_fetch_pois(center, interests):
         return {}
 
+    async def fake_get_daily(lat, lon, start, end):
+        return [{"code": 61, "t_max": 24, "t_min": 15, "precip": 70}, None]
+
     async def fake_summary(trip, schedule, total_cost):
         return "final say", None
 
@@ -59,6 +62,7 @@ def patched(monkeypatch):
     monkeypatch.setattr(orch, "geocode", fake_geocode)
     monkeypatch.setattr(orch, "geocode_near", fake_geocode_near)
     monkeypatch.setattr(orch, "fetch_pois", fake_fetch_pois)
+    monkeypatch.setattr(orch, "get_daily", fake_get_daily)
     monkeypatch.setattr(orch.planner, "summary_message", fake_summary)
     monkeypatch.setattr(orch.budget, "objection_message", fake_budget_obj)
     monkeypatch.setattr(orch.logistics, "objection_message", fake_logistics_obj)
@@ -73,7 +77,10 @@ async def roles(session, trip_id):
 
 
 async def test_happy_path(session, patched):
-    async def fake_propose(trip, num_days, pois=None):
+    captured = {}
+
+    async def fake_propose(trip, num_days, pois=None, weather_text=""):
+        captured["weather_text"] = weather_text
         return "my proposal", cheap_days(), None
 
     patched.setattr(orch.interest, "propose", fake_propose)
@@ -94,12 +101,17 @@ async def test_happy_path(session, patched):
     assert itin.total_cost == 35.0
     assert trip.status == "done"
 
+    # hava: gün 1 proqnozla saxlanılır, gün 2 None; precip 70 → yağış hint-i prompt-a gedir
+    assert itin.days[0]["weather"] == {"code": 61, "t_max": 24, "t_min": 15, "precip": 70}
+    assert itin.days[1]["weather"] is None
+    assert "day(s) 1" in captured["weather_text"]
+
 
 async def test_over_budget_triggers_revision(session, patched):
     expensive = [{"day": 1, "items": [make_item(name="Expensive", est_cost=500, lat=41.90, lon=12.49)]},
                  {"day": 2, "items": [make_item(name="Trevi", est_cost=5, lat=41.901, lon=12.483)]}]
 
-    async def fake_propose(trip, num_days, pois=None):
+    async def fake_propose(trip, num_days, pois=None, weather_text=""):
         return "proposal", expensive, None
 
     async def fake_revise(trip, days, objections, pois=None):

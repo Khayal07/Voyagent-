@@ -41,12 +41,14 @@ def normalize_days(raw_days: list, num_days: int) -> list[dict]:
     return days
 
 
-async def propose(trip: Trip, num_days: int, pois: dict[str, list[dict]] | None = None) -> tuple[str, list[dict], LLMResult]:
+async def propose(
+    trip: Trip, num_days: int, pois: dict[str, list[dict]] | None = None, weather_text: str = ""
+) -> tuple[str, list[dict], LLMResult]:
     data, llm = await ask_json(
         prompts.INTEREST_SYSTEM,
         prompts.interest_propose(
             trip.city, num_days, list(trip.interests or []), trip.travelers, trip.currency, trip.language,
-            pois_text=prompts.poi_block(pois or {}),
+            pois_text=prompts.poi_block(pois or {}), weather_text=weather_text,
         ),
         max_tokens=1500,
     )

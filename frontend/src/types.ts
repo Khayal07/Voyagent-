@@ -48,6 +48,12 @@ export interface ItineraryDay {
   day: number;
   date: string;
   items: ItineraryItem[];
+  weather?: {
+    code: number;
+    t_max: number | null;
+    t_min: number | null;
+    precip: number | null;
+  } | null;
 }
 
 export interface Itinerary {

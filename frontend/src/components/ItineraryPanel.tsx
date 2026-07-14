@@ -1,6 +1,7 @@
 import { useT } from "../i18n";
 import type { Itinerary } from "../types";
 import { useRates } from "../useRates";
+import { weatherEmoji } from "../weather";
 import { DAY_COLORS } from "./MapView";
 
 interface Props {
@@ -59,6 +60,11 @@ export default function ItineraryPanel({ itinerary, currency, selectedDay, onSel
               />
               {t.day} {d.day}
               <span className="font-mono text-xs font-normal text-ink-soft">{d.date}</span>
+              {d.weather && (
+                <span className="ml-auto font-mono text-xs font-normal text-ink-soft">
+                  {weatherEmoji(d.weather.code)} {d.weather.t_max}°/{d.weather.t_min}°
+                </span>
+              )}
             </h3>
             <ol className="space-y-2">
               {d.items.map((i, idx) => (

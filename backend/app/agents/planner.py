@@ -13,11 +13,13 @@ ITEM_GAP_MIN = 20
 DEFAULT_TRAVEL_MIN = 30
 
 
-def build_schedule(trip: Trip, days: list[dict]) -> tuple[list[dict], float]:
+def build_schedule(
+    trip: Trip, days: list[dict], weather: list[dict | None] | None = None
+) -> tuple[list[dict], float]:
     """Hər günə başlama vaxtları verir; gecə həyatı günün sonuna keçirilir."""
     result_days = []
     current_date = trip.start_date
-    for d in days:
+    for idx, d in enumerate(days):
         items = sorted(d["items"], key=lambda i: i["category"] == "nightlife")
         t = DAY_START_MIN
         out, prev = [], None
@@ -28,7 +30,10 @@ def build_schedule(trip: Trip, days: list[dict]) -> tuple[list[dict], float]:
             out.append({**item, "start_time": f"{(t // 60) % 24:02d}:{t % 60:02d}"})
             t += item["duration_min"] + ITEM_GAP_MIN
             prev = item
-        result_days.append({"day": d["day"], "date": str(current_date), "items": out})
+        result_days.append({
+            "day": d["day"], "date": str(current_date), "items": out,
+            "weather": weather[idx] if weather and idx < len(weather) else None,
+        })
         current_date += timedelta(days=1)
 
     total_cost = round(sum(i["est_cost"] for d in days for i in d["items"]) * trip.travelers, 2)

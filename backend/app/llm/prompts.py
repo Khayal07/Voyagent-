@@ -27,12 +27,13 @@ def poi_block(pois: dict[str, list[dict]]) -> str:
 
 
 def interest_propose(
-    city: str, num_days: int, interests: list[str], travelers: int, currency: str, lang: str, pois_text: str = ""
+    city: str, num_days: int, interests: list[str], travelers: int, currency: str, lang: str,
+    pois_text: str = "", weather_text: str = "",
 ) -> str:
     ints = ", ".join(interests) if interests else "general"
     return (
         f"City: {city}. Days: {num_days}. Interests: {ints}. Travelers: {travelers}.\n"
-        + pois_text +
+        + pois_text + weather_text +
         "Suggest 3-4 activities per day (you decide per day; real places, cluster nearby ones on the same day).\n"
         '"name" must be ONLY the official original name of the place (local language/English, findable on '
         'OpenStreetMap) — no descriptions, translations or extra words. Good: "Fontana di Trevi". '
@@ -84,6 +85,8 @@ MESSAGES = {
     "en": {
         "start": "Preparing a {days}-day plan for {city} — 4 agents are starting.",
         "poi_found": "Found {n} verified real places near {city} (Geoapify) — agents will prefer them.",
+        "weather": "Weather forecast for {city}: {parts} (Open-Meteo).",
+        "day_label": "Day",
         "geocoding": "Locating places on the map (OpenStreetMap)...",
         "budget_ok": "Budget check: total cost ~{total} {cur}, budget {budget} {cur} — within budget, approved.",
         "budget_reason": "too expensive ({cost} {cur} per person) — need an alternative up to ~{target} {cur}",
@@ -101,6 +104,8 @@ MESSAGES = {
     "az": {
         "start": "{city} üçün {days} günlük plan hazırlanır — 4 agent işə başlayır.",
         "poi_found": "{city} yaxınlığında {n} təsdiqlənmiş real yer tapıldı (Geoapify) — agentlər onlara üstünlük verəcək.",
+        "weather": "{city} üçün hava proqnozu: {parts} (Open-Meteo).",
+        "day_label": "Gün",
         "geocoding": "Yerlərin koordinatları tapılır (OpenStreetMap)...",
         "budget_ok": "Büdcə yoxlanışı: ümumi xərc ~{total} {cur}, büdcə {budget} {cur} — uyğundur, təsdiqləyirəm.",
         "budget_reason": "bahalıdır ({cost} {cur} adambaşı) — ~{target} {cur}-dək alternativ lazımdır",

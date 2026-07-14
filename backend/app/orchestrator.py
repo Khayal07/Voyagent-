@@ -14,6 +14,7 @@ from .llm.prompts import msg
 from .models import AgentMessage, Itinerary, Trip
 from .services.geocode import geocode, geocode_near
 from .services.poi import fetch_pois
+from .services.weather import get_daily
 
 logger = logging.getLogger("voyagent.orchestrator")
 
@@ -134,8 +135,25 @@ async def _run(session: AsyncSession, trip: Trip) -> None:
         n = sum(len(v) for v in pois.values())
         await emit(session, trip_id, "system", 0, "info", msg(lang, "poi_found", n=n, city=trip.city))
 
+    # Hava proqnozu (üfüqdən kənar günlər None) — sistem mesajı + LLM-ə kompakt yağış hint-i
+    weather = (
+        await get_daily(city_coords[0], city_coords[1], trip.start_date, trip.end_date)
+        if city_coords else [None] * num_days
+    )
+    if any(w for w in weather):
+        parts = ", ".join(
+            f"{msg(lang, 'day_label')} {i + 1}: {w['t_max']}°/{w['t_min']}°"
+            for i, w in enumerate(weather) if w
+        )
+        await emit(session, trip_id, "system", 0, "info", msg(lang, "weather", city=trip.city, parts=parts))
+    rainy = [i + 1 for i, w in enumerate(weather) if w and (w.get("precip") or 0) >= 50]
+    weather_hint = (
+        "Rain likely on day(s) " + ", ".join(map(str, rainy)) + " — prefer indoor activities those days.\n"
+        if rainy else ""
+    )
+
     # Raund 0: Interest Agent ilkin təklif
-    say, days, llm = await interest.propose(trip, num_days, pois)
+    say, days, llm = await interest.propose(trip, num_days, pois, weather_text=weather_hint)
     await note_fallback(session, trip_id, "interest", 0, llm, lang)
     await emit(session, trip_id, "interest", 0, "proposal", say, {"days": days})
 
@@ -180,7 +198,7 @@ async def _run(session: AsyncSession, trip: Trip) -> None:
         await _geocode_days(days, trip.city, city_coords)
 
     # Planner: yekun cədvəl
-    schedule, total_cost = planner.build_schedule(trip, days)
+    schedule, total_cost = planner.build_schedule(trip, days, weather=weather)
     say, p_llm = await planner.summary_message(trip, schedule, total_cost)
     await note_fallback(session, trip_id, "planner", 99, p_llm, lang)
     await emit(session, trip_id, "planner", 99, "final", say, {"days": schedule, "total_cost": total_cost})
