@@ -28,8 +28,20 @@ def patch_transport(monkeypatch, handler):
     return counter
 
 
-def feature(name, lat=41.9, lon=12.5):
-    return {"properties": {"name": name, "lat": lat, "lon": lon}}
+def feature(name, lat=41.9, lon=12.5, raw=None, details=None):
+    props = {"name": name, "lat": lat, "lon": lon}
+    if raw:
+        props["datasource"] = {"raw": raw}
+    if details:
+        props["details"] = details
+    return {"properties": props}
+
+
+def spread(feats):
+    """Hər feature-ə fərqli lon verir ki, spacing filtri işə düşməsin."""
+    for i, f in enumerate(feats):
+        f["properties"]["lon"] = 12.5 + i * 0.01
+    return feats
 
 
 async def test_no_api_key_returns_empty(monkeypatch):
@@ -53,9 +65,9 @@ async def test_category_mapping_in_request(monkeypatch):
 
 async def test_unnamed_and_duplicate_features_filtered(monkeypatch):
     def handler(request):
-        return httpx.Response(200, json={"features": [
+        return httpx.Response(200, json={"features": spread([
             feature("Colosseum"), feature(""), feature("colosseum"), feature("Pantheon"),
-        ]})
+        ])})
 
     patch_transport(monkeypatch, handler)
     result = await poi.fetch_pois((41.9, 12.5), ["history"])
@@ -81,7 +93,49 @@ async def test_cache_prevents_second_request(monkeypatch):
 
 
 async def test_per_category_cap(monkeypatch):
-    feats = [feature(f"Place {i}") for i in range(10)]
+    feats = spread([feature(f"Place {i}") for i in range(poi.PER_CATEGORY + 2)])
     patch_transport(monkeypatch, lambda r: httpx.Response(200, json={"features": feats}))
     result = await poi.fetch_pois((41.9, 12.5), ["history"])
     assert len(result["history"]) == poi.PER_CATEGORY
+
+
+async def test_fame_ranking_prefers_wiki_and_translations(monkeypatch):
+    feats = spread([
+        feature("Obscure Alley"),
+        feature("Trevi Fountain", raw={"wikipedia": "it:Fontana di Trevi"}),
+        feature("Colosseum", raw={"name:en": "x", "name:az": "y", "name:fr": "z"}),
+        feature("Minor Statue"),
+    ])
+    patch_transport(monkeypatch, lambda r: httpx.Response(200, json={"features": feats}))
+    result = await poi.fetch_pois((41.9, 12.5), ["history"])
+    names = [p["name"] for p in result["history"]]
+    assert names[0] == "Colosseum"
+    assert names[1] == "Trevi Fountain"
+
+
+async def test_min_spacing_drops_clustered_pois(monkeypatch):
+    # İkisi eyni nöqtədə (Forum mikro-abidələri), üçüncüsü uzaqda
+    feats = [
+        feature("Temple A", lat=41.9, lon=12.5, raw={"name:en": "a"}),
+        feature("Temple B", lat=41.9, lon=12.5001, raw={"name:en": "b"}),
+        feature("Far Basilica", lat=41.9, lon=12.6),
+    ]
+    patch_transport(monkeypatch, lambda r: httpx.Response(200, json={"features": feats}))
+    result = await poi.fetch_pois((41.9, 12.5), ["history"])
+    names = [p["name"] for p in result["history"]]
+    assert "Temple A" in names
+    assert "Temple B" not in names
+    assert "Far Basilica" in names
+
+
+async def test_request_has_proximity_bias_and_pool_limit(monkeypatch):
+    seen = {}
+
+    def handler(request):
+        seen["params"] = dict(request.url.params)
+        return httpx.Response(200, json={"features": []})
+
+    patch_transport(monkeypatch, handler)
+    await poi.fetch_pois((41.9, 12.5), ["history"])
+    assert seen["params"]["bias"] == "proximity:12.5,41.9"
+    assert seen["params"]["limit"] == str(poi.POOL_LIMIT)
