@@ -5,12 +5,13 @@ from sqlalchemy.ext.asyncio import AsyncSession
 from ..auth import create_token, get_current_user, hash_password, verify_password
 from ..db import get_session
 from ..models import User
+from ..ratelimit import limit_auth
 from ..schemas import LoginIn, RegisterIn, TokenOut, UserOut
 
 router = APIRouter(prefix="/api/auth", tags=["auth"])
 
 
-@router.post("/register", response_model=TokenOut, status_code=201)
+@router.post("/register", response_model=TokenOut, status_code=201, dependencies=[Depends(limit_auth)])
 async def register(data: RegisterIn, session: AsyncSession = Depends(get_session)):
     email = data.email.lower().strip()
     existing = await session.execute(select(User).where(User.email == email))
@@ -23,7 +24,7 @@ async def register(data: RegisterIn, session: AsyncSession = Depends(get_session
     return TokenOut(token=create_token(user.id), email=user.email)
 
 
-@router.post("/login", response_model=TokenOut)
+@router.post("/login", response_model=TokenOut, dependencies=[Depends(limit_auth)])
 async def login(data: LoginIn, session: AsyncSession = Depends(get_session)):
     email = data.email.lower().strip()
     result = await session.execute(select(User).where(User.email == email))

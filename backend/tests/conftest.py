@@ -10,6 +10,14 @@ from sqlalchemy.pool import StaticPool
 
 from app.db import Base, get_session
 from app.main import app
+from app.ratelimit import reset_all
+
+
+@pytest.fixture(autouse=True)
+def clean_rate_limits():
+    reset_all()
+    yield
+    reset_all()
 
 
 @pytest.fixture

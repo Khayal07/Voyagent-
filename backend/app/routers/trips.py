@@ -13,6 +13,7 @@ from ..db import get_session
 from ..events import bus
 from ..models import AgentMessage, Trip, User
 from ..orchestrator import run_trip_planning
+from ..ratelimit import trip_limiter
 from ..schemas import TripCreate, TripDetail, TripOut
 
 router = APIRouter(prefix="/api/trips", tags=["trips"])
@@ -28,6 +29,8 @@ async def create_trip(
     session: AsyncSession = Depends(get_session),
     user: User = Depends(get_current_user),
 ):
+    # LLM xərcini qorumaq üçün istifadəçi başına limit
+    trip_limiter.check(str(user.id))
     trip = Trip(**data.model_dump(), user_id=user.id)
     session.add(trip)
     await session.commit()
