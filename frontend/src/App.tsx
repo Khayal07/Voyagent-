@@ -220,6 +220,7 @@ export default function App() {
                 <MissionControl
                   trip={trip}
                   phase={phase}
+                  status={status}
                   messages={messages}
                   itinerary={itinerary}
                   cityCenter={cityCenter}

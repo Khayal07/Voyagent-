@@ -1,14 +1,18 @@
 import { useState } from "react";
+import { useAgentStatuses } from "../hooks/useAgentStatuses";
 import { useT } from "../i18n";
 import type { Phase } from "../streamState";
 import type { AgentMsg, Itinerary, Trip } from "../types";
-import AgentChat from "./AgentChat";
 import ItineraryPanel from "./ItineraryPanel";
 import MapView from "./MapView";
+import AgentNodeBar from "./warroom/AgentNodeBar";
+import ConflictBadge from "./warroom/ConflictBadge";
+import ConsensusStream from "./warroom/ConsensusStream";
 
 interface Props {
   trip: Trip;
   phase: Phase;
+  status: string;
   messages: AgentMsg[];
   itinerary: Itinerary | null;
   cityCenter: [number, number] | null;
@@ -21,6 +25,7 @@ interface Props {
 export default function MissionControl({
   trip,
   phase,
+  status,
   messages,
   itinerary,
   cityCenter,
@@ -32,6 +37,7 @@ export default function MissionControl({
   const t = useT();
   const [mobileTab, setMobileTab] = useState<"war" | "map">("war");
   const planning = phase === "streaming";
+  const { statuses, conflicts } = useAgentStatuses(messages, status);
 
   const tabBtn = (tab: "war" | "map", label: string) => (
     <button
@@ -67,9 +73,14 @@ export default function MissionControl({
               {trip.budget} {trip.currency} · {trip.travelers} {t.people}
             </span>
           </div>
-          <div className="min-h-0 flex-1">
-            <AgentChat messages={messages} planning={planning} />
-          </div>
+          <AgentNodeBar statuses={statuses} />
+          <ConflictBadge conflicts={conflicts} />
+          <ConsensusStream
+            key={trip.id}
+            messages={messages}
+            planning={planning}
+            failed={phase === "failed"}
+          />
         </section>
 
         {/* Sağ: xəritə kanvası (HUD overlay-lər sonrakı mərhələdə bura gəlir) */}
