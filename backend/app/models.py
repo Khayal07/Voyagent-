@@ -58,6 +58,14 @@ class AgentMessage(Base):
     trip: Mapped[Trip] = relationship(back_populates="messages")
 
 
+class CacheEntry(Base):
+    __tablename__ = "kv_cache"
+
+    key: Mapped[str] = mapped_column(String(255), primary_key=True)
+    value: Mapped[dict | list | None] = mapped_column(JSONColumn, nullable=True)
+    created_at: Mapped[datetime] = mapped_column(DateTime(timezone=True), server_default=func.now())
+
+
 class Itinerary(Base):
     __tablename__ = "itineraries"
 

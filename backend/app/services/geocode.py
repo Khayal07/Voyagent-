@@ -1,4 +1,4 @@
-"""Nominatim (OpenStreetMap) geocoding — in-memory cache + 1 sorğu/saniyə rate limit."""
+"""Nominatim (OpenStreetMap) geocoding — davamlı cache + 1 sorğu/saniyə rate limit."""
 
 import asyncio
 import logging
@@ -6,20 +6,23 @@ import time
 
 import httpx
 
+from .cache import MISS, KVCache
+
 logger = logging.getLogger("voyagent.geocode")
 
 NOMINATIM_URL = "https://nominatim.openstreetmap.org/search"
 USER_AGENT = "Voyagent/0.1 (educational project)"
 
-_cache: dict[str, tuple[float, float] | None] = {}
+_cache = KVCache("geo")
 _lock = asyncio.Lock()
 _last_request = 0.0
 
 
 async def _search(key: str, params: dict) -> tuple[float, float] | None:
     global _last_request
-    if key in _cache:
-        return _cache[key]
+    cached = await _cache.get(key)
+    if cached is not MISS:
+        return (cached[0], cached[1]) if cached else None
 
     async with _lock:
         # Nominatim istifadə şərtləri: maksimum 1 sorğu/saniyə
@@ -38,7 +41,7 @@ async def _search(key: str, params: dict) -> tuple[float, float] | None:
     coords = (float(results[0]["lat"]), float(results[0]["lon"])) if results else None
     if coords is None:
         logger.info("Geocode tapılmadı: %s", key)
-    _cache[key] = coords
+    await _cache.set(key, list(coords) if coords else None)
     return coords
 
 

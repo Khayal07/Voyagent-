@@ -5,11 +5,12 @@ import pytest
 
 from app.config import settings
 from app.services import poi
+from app.services.cache import KVCache
 
 
 @pytest.fixture(autouse=True)
 def isolate(monkeypatch):
-    monkeypatch.setattr(poi, "_cache", {})
+    monkeypatch.setattr(poi, "_cache", KVCache("poi", persist=False))
     monkeypatch.setattr(settings, "geoapify_api_key", "test-key")
 
 

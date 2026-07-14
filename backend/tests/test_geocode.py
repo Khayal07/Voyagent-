@@ -4,6 +4,7 @@ import httpx
 import pytest
 
 from app.services import geocode as geo
+from app.services.cache import KVCache
 
 
 class FakeTime:
@@ -19,7 +20,7 @@ class FakeTime:
 
 @pytest.fixture(autouse=True)
 def isolate(monkeypatch):
-    monkeypatch.setattr(geo, "_cache", {})
+    monkeypatch.setattr(geo, "_cache", KVCache("geo", persist=False))
     monkeypatch.setattr(geo, "_last_request", 0.0)
     monkeypatch.setattr(geo, "time", FakeTime())
 

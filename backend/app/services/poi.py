@@ -6,6 +6,7 @@ import math
 import httpx
 
 from ..config import settings
+from .cache import MISS, KVCache
 
 logger = logging.getLogger("voyagent.poi")
 
@@ -29,7 +30,7 @@ CATEGORY_MAP = {
 }
 DEFAULT_CATEGORIES = ["history", "nature", "food", "art"]
 
-_cache: dict[tuple[float, float, str], list[dict]] = {}
+_cache = KVCache("poi")
 
 
 def _fame(props: dict) -> int:
@@ -74,9 +75,10 @@ def _select(features: list[dict]) -> list[dict]:
 
 async def _fetch_category(client: httpx.AsyncClient, center: tuple[float, float], category: str) -> list[dict]:
     lat, lon = center
-    key = (round(lat, 2), round(lon, 2), category)
-    if key in _cache:
-        return _cache[key]
+    key = f"{round(lat, 2)}:{round(lon, 2)}:{category}"
+    cached = await _cache.get(key)
+    if cached is not MISS:
+        return cached
 
     params = {
         "categories": CATEGORY_MAP[category],
@@ -96,7 +98,7 @@ async def _fetch_category(client: httpx.AsyncClient, center: tuple[float, float]
         features = []
 
     pois = _select(features)
-    _cache[key] = pois
+    await _cache.set(key, pois)
     return pois
 
 
