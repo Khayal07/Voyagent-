@@ -157,3 +157,11 @@ async def test_apply_poi_coords_matches_casefold():
     days = [{"day": 1, "items": [make_item(name="Colosseum ")]}]
     orch._apply_poi_coords(days, {"history": [{"name": "colosseum", "lat": 41.89, "lon": 12.49}]})
     assert days[0]["items"][0]["lat"] == 41.89
+
+
+async def test_apply_poi_coords_attaches_wiki():
+    days = [{"day": 1, "items": [make_item(name="Trevi"), make_item(name="Naməlum")]}]
+    pois = {"history": [{"name": "trevi", "lat": 41.9, "lon": 12.48, "wiki": "it:Fontana di Trevi"}]}
+    orch._apply_poi_coords(days, pois)
+    assert days[0]["items"][0]["wiki"] == "it:Fontana di Trevi"
+    assert "wiki" not in days[0]["items"][1]

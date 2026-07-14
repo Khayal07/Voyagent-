@@ -140,6 +140,20 @@ async def test_brand_chains_rank_last(monkeypatch):
     assert [p["name"] for p in result["food"]] == ["Local Bistro", "Starbucks"]
 
 
+async def test_wiki_tag_kept_and_malformed_dropped(monkeypatch):
+    feats = spread([
+        feature("Trevi", raw={"wikipedia": "it:Fontana di Trevi"}),
+        feature("Pozuq", raw={"wikipedia": "not-a-tag"}),
+        feature("Tagsız"),
+    ])
+    patch_transport(monkeypatch, lambda r: httpx.Response(200, json={"features": feats}))
+    result = await poi.fetch_pois((41.9, 12.5), ["history"])
+    by_name = {p["name"]: p for p in result["history"]}
+    assert by_name["Trevi"]["wiki"] == "it:Fontana di Trevi"
+    assert "wiki" not in by_name["Pozuq"]
+    assert "wiki" not in by_name["Tagsız"]
+
+
 async def test_request_has_proximity_bias_and_pool_limit(monkeypatch):
     seen = {}
 

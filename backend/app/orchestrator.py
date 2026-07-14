@@ -62,16 +62,18 @@ MAX_KM_FROM_CENTER = 80
 
 
 def _apply_poi_coords(days: list[dict], pois: dict[str, list[dict]]) -> None:
-    """Geoapify namizədləri ilə ad uyğunluğu olan item-lara real koordinatı birbaşa yazır."""
-    index = {p["name"].casefold().strip(): (p["lat"], p["lon"]) for items in pois.values() for p in items}
+    """Geoapify namizədləri ilə ad uyğunluğu olan item-lara real koordinatı (və wiki tagını) yazır."""
+    index = {p["name"].casefold().strip(): p for items in pois.values() for p in items}
     if not index:
         return
     for d in days:
         for item in d["items"]:
             if item.get("lat") is None:
-                coords = index.get(item["name"].casefold().strip())
-                if coords is not None:
-                    item["lat"], item["lon"] = coords
+                poi = index.get(item["name"].casefold().strip())
+                if poi is not None:
+                    item["lat"], item["lon"] = poi["lat"], poi["lon"]
+                    if poi.get("wiki"):
+                        item["wiki"] = poi["wiki"]
 
 
 async def _geocode_days(days: list[dict], city: str, center: tuple[float, float] | None) -> None:

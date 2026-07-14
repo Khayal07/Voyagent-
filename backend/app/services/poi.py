@@ -2,6 +2,7 @@
 
 import logging
 import math
+import re
 
 import httpx
 
@@ -18,6 +19,8 @@ MAX_NAME_LEN = 60
 POOL_LIMIT = 500
 MIN_SPACING_M = 250
 BRAND_PENALTY = -10
+# OSM wikipedia tagı: "it:Fontana di Trevi" formatı
+WIKI_TAG_RE = re.compile(r"^[a-z-]{2,12}:.+")
 
 # Voyagent maraq kateqoriyaları → Geoapify kateqoriya id-ləri
 CATEGORY_MAP = {
@@ -67,7 +70,11 @@ def _select(features: list[dict]) -> list[dict]:
         if any(_dist_m(pt, (p["lat"], p["lon"])) < MIN_SPACING_M for p in pois):
             continue
         seen.add(name.casefold())
-        pois.append({"name": name, "lat": pt[0], "lon": pt[1]})
+        poi = {"name": name, "lat": pt[0], "lon": pt[1]}
+        wiki = ((props.get("datasource") or {}).get("raw") or {}).get("wikipedia")
+        if isinstance(wiki, str) and WIKI_TAG_RE.match(wiki):
+            poi["wiki"] = wiki
+        pois.append(poi)
         if len(pois) >= PER_CATEGORY:
             break
     return pois
@@ -75,7 +82,8 @@ def _select(features: list[dict]) -> list[dict]:
 
 async def _fetch_category(client: httpx.AsyncClient, center: tuple[float, float], category: str) -> list[dict]:
     lat, lon = center
-    key = f"{round(lat, 2)}:{round(lon, 2)}:{category}"
+    # :v2 — köhnə cache sətirlərində wiki sahəsi yoxdur
+    key = f"{round(lat, 2)}:{round(lon, 2)}:{category}:v2"
     cached = await _cache.get(key)
     if cached is not MISS:
         return cached

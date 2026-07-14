@@ -42,6 +42,7 @@ export interface ItineraryItem {
   lat?: number | null;
   lon?: number | null;
   start_time?: string;
+  wiki?: string | null;
 }
 
 export interface ItineraryDay {

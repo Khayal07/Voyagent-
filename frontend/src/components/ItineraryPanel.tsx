@@ -3,6 +3,7 @@ import type { Itinerary } from "../types";
 import { useRates } from "../useRates";
 import { weatherEmoji } from "../weather";
 import { DAY_COLORS } from "./MapView";
+import PoiThumb from "./PoiThumb";
 
 interface Props {
   itinerary: Itinerary;
@@ -68,9 +69,10 @@ export default function ItineraryPanel({ itinerary, currency, selectedDay, onSel
             </h3>
             <ol className="space-y-2">
               {d.items.map((i, idx) => (
-                <li key={i.name} className="flex items-baseline gap-3 text-sm">
+                <li key={i.name} className="flex items-center gap-3 text-sm">
                   <span className="w-5 text-right font-mono text-xs text-ink-soft">{idx + 1}.</span>
                   <span className="w-12 font-mono text-xs text-ink-soft">{i.start_time}</span>
+                  <PoiThumb wiki={i.wiki} name={i.name} />
                   <span className="min-w-0 flex-1">
                     {i.name}{" "}
                     <span className="whitespace-nowrap rounded-sm bg-mist px-1.5 py-px font-mono text-[10px] text-ink-soft">

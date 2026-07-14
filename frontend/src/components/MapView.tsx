@@ -3,6 +3,7 @@ import { useEffect, useMemo } from "react";
 import { MapContainer, Marker, Polyline, Popup, TileLayer, Tooltip, useMap } from "react-leaflet";
 import { useT } from "../i18n";
 import type { Itinerary } from "../types";
+import PoiThumb from "./PoiThumb";
 
 export const DAY_COLORS = ["#e4572e", "#2274a5", "#2e933c", "#7c5cbf", "#d98e04"];
 
@@ -83,6 +84,7 @@ export default function MapView({ center, itinerary, selectedDay, currency }: Pr
                       <span style={{ font: "500 12px Archivo, sans-serif" }}>{i.name}</span>
                     </Tooltip>
                     <Popup>
+                      <PoiThumb wiki={i.wiki} name={i.name} size={160} />
                       <strong>{i.name}</strong>
                       <br />
                       {t.day} {d.day} · {t.startsAt} {i.start_time ?? "—"}
