@@ -1,10 +1,10 @@
 import { useState } from "react";
 import { useAgentStatuses } from "../hooks/useAgentStatuses";
+import { useLivePoints } from "../hooks/useLivePoints";
 import { useT } from "../i18n";
 import type { Phase } from "../streamState";
 import type { AgentMsg, Itinerary, Trip } from "../types";
-import ItineraryPanel from "./ItineraryPanel";
-import MapView from "./MapView";
+import MapCanvas from "./MapCanvas";
 import AgentNodeBar from "./warroom/AgentNodeBar";
 import ConflictBadge from "./warroom/ConflictBadge";
 import ConsensusStream from "./warroom/ConsensusStream";
@@ -38,6 +38,7 @@ export default function MissionControl({
   const [mobileTab, setMobileTab] = useState<"war" | "map">("war");
   const planning = phase === "streaming";
   const { statuses, conflicts } = useAgentStatuses(messages, status);
+  const live = useLivePoints(messages, itinerary);
 
   const tabBtn = (tab: "war" | "map", label: string) => (
     <button
@@ -83,42 +84,25 @@ export default function MissionControl({
           />
         </section>
 
-        {/* Sağ: xəritə kanvası (HUD overlay-lər sonrakı mərhələdə bura gəlir) */}
+        {/* Sağ: tam-ekran radar xəritə + HUD */}
         <section
           className={`${
             mobileTab === "map" ? "flex" : "hidden"
           } relative min-h-0 flex-col overflow-hidden rounded-xl border border-line lg:flex`}
         >
-          {cityCenter ? (
-            <div className="min-h-0 flex-1">
-              <MapView
-                center={cityCenter}
-                itinerary={itinerary}
-                selectedDay={selectedDay}
-                currency={trip.currency}
-              />
-            </div>
-          ) : (
-            <div className="flex flex-1 items-center justify-center bg-panel/40 font-mono text-sm text-ink-soft">
-              <span className="typing-dot mr-2 h-2 w-2 rounded-full bg-cyan" />
-              {planning ? t.signalAcquiring : t.noRoute}
-            </div>
-          )}
-
-          {itinerary && (
-            <div className="max-h-[45%] overflow-y-auto border-t border-line">
-              <ItineraryPanel
-                itinerary={itinerary}
-                currency={trip.currency}
-                selectedDay={selectedDay}
-                onSelectDay={onSelectDay}
-                tripId={trip.id}
-                editable={phase === "done"}
-                onChange={onItineraryChange}
-                onError={onError}
-              />
-            </div>
-          )}
+          <div className="min-h-0 flex-1">
+            <MapCanvas
+              trip={trip}
+              phase={phase}
+              itinerary={itinerary}
+              live={live}
+              cityCenter={cityCenter}
+              selectedDay={selectedDay}
+              onSelectDay={onSelectDay}
+              onItineraryChange={onItineraryChange}
+              onError={onError}
+            />
+          </div>
         </section>
       </div>
     </div>

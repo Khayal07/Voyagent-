@@ -71,7 +71,7 @@ function SortableItem({
       <PoiThumb wiki={item.wiki} name={item.name} />
       <span className="min-w-0 flex-1">
         {item.name}{" "}
-        <span className="whitespace-nowrap rounded-sm bg-mist px-1.5 py-px font-mono text-[10px] text-ink-soft">
+        <span className="whitespace-nowrap rounded-sm bg-panel-2 px-1.5 py-px font-mono text-[10px] text-ink-soft">
           {t.categories[item.category as keyof typeof t.categories] ?? item.category}
         </span>
       </span>
@@ -85,7 +85,7 @@ function SortableItem({
           disabled={saving}
           onPointerDown={(e) => e.stopPropagation()}
           onClick={onDelete}
-          className="rounded px-1 font-mono text-xs text-ink-soft opacity-0 transition-opacity hover:text-route group-hover:opacity-100"
+          className="rounded px-1 font-mono text-xs text-ink-soft opacity-0 transition-opacity hover:text-alert group-hover:opacity-100"
         >
           ✕
         </button>
@@ -213,14 +213,14 @@ export default function ItineraryPanel({
   );
 
   return (
-    <div className="rounded-lg border border-line bg-card">
+    <div>
       <div className="flex flex-wrap gap-1.5 border-b border-line px-4 py-3" role="tablist">
         <button
           role="tab"
           aria-selected={selectedDay === 0}
           onClick={() => onSelectDay(0)}
           className={`rounded-md px-3 py-1 font-mono text-xs transition-colors ${
-            selectedDay === 0 ? "bg-ink text-mist" : "text-ink-soft hover:text-ink"
+            selectedDay === 0 ? "bg-cyan text-void" : "text-ink-soft hover:text-ink"
           }`}
         >
           {t.all}
@@ -232,7 +232,7 @@ export default function ItineraryPanel({
             aria-selected={selectedDay === d.day}
             onClick={() => onSelectDay(d.day)}
             className={`rounded-md px-3 py-1 font-mono text-xs transition-colors ${
-              selectedDay === d.day ? "text-white" : "text-ink-soft hover:text-ink"
+              selectedDay === d.day ? "text-void" : "text-ink-soft hover:text-ink"
             }`}
             style={
               selectedDay === d.day
@@ -245,7 +245,7 @@ export default function ItineraryPanel({
         ))}
         <button
           onClick={() => window.print()}
-          className="ml-auto rounded-md border border-line px-3 py-1 font-mono text-xs text-ink-soft transition-colors hover:border-ink hover:text-ink"
+          className="ml-auto rounded-md border border-line px-3 py-1 font-mono text-xs text-ink-soft transition-colors hover:border-cyan/50 hover:text-ink"
         >
           ⤓ {t.exportPdf}
         </button>
