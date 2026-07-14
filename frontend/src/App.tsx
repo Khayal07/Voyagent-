@@ -5,6 +5,7 @@ import AuthForm from "./components/AuthForm";
 import ItineraryPanel from "./components/ItineraryPanel";
 import MapView from "./components/MapView";
 import MyTrips from "./components/MyTrips";
+import PrintableItinerary from "./components/PrintableItinerary";
 import TripForm from "./components/TripForm";
 import { LangContext, getInitialLang, translations, type Lang } from "./i18n";
 import type { AgentMsg, Itinerary, Trip, TripInput } from "./types";
@@ -131,7 +132,8 @@ export default function App() {
 
   return (
     <LangContext.Provider value={{ lang, setLang }}>
-      <div className="mx-auto flex min-h-screen max-w-6xl flex-col px-4 py-6">
+      {trip && itinerary && <PrintableItinerary trip={trip} itinerary={itinerary} />}
+      <div className="app-screen mx-auto flex min-h-screen max-w-6xl flex-col px-4 py-6">
         <header className="mb-6 flex items-end justify-between border-b-2 border-ink pb-4">
           <div>
             <h1 className="font-display text-3xl font-extrabold tracking-tight">

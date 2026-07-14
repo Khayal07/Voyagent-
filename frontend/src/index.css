@@ -43,3 +43,20 @@ body {
 @media (prefers-reduced-motion: reduce) {
   .typing-dot { animation: none; }
 }
+
+/* Çap görünüşü: ekran ağacı gizlənir, yalnız PrintableItinerary çıxır */
+.print-only {
+  display: none;
+}
+
+@media print {
+  .app-screen {
+    display: none;
+  }
+  .print-only {
+    display: block;
+  }
+  @page {
+    margin: 14mm;
+  }
+}

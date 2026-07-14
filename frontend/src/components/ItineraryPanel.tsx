@@ -243,6 +243,12 @@ export default function ItineraryPanel({
             {t.day} {d.day}
           </button>
         ))}
+        <button
+          onClick={() => window.print()}
+          className="ml-auto rounded-md border border-line px-3 py-1 font-mono text-xs text-ink-soft transition-colors hover:border-ink hover:text-ink"
+        >
+          ⤓ {t.exportPdf}
+        </button>
       </div>
 
       {canEdit ? (
