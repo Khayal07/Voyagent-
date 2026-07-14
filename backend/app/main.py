@@ -5,8 +5,8 @@ from fastapi import FastAPI, HTTPException
 from fastapi.middleware.cors import CORSMiddleware
 from sqlalchemy import text
 
-from . import models  # noqa: F401 — create_all üçün modellər qeydiyyata düşməlidir
-from .db import engine, init_db
+from . import models  # noqa: F401 — metadata qeydiyyatı üçün
+from .db import engine, run_migrations
 from .llm.client import LLMError, call_llm
 from .routers.auth import router as auth_router
 from .routers.trips import router as trips_router
@@ -17,8 +17,8 @@ logger = logging.getLogger("voyagent")
 
 @asynccontextmanager
 async def lifespan(app: FastAPI):
-    await init_db()
-    logger.info("Database tables ready")
+    await run_migrations()
+    logger.info("Database migrations applied")
     yield
 
 
