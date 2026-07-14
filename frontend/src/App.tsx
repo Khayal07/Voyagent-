@@ -1,23 +1,21 @@
-import { useEffect, useMemo, useRef, useState } from "react";
+import { AnimatePresence, motion } from "motion/react";
+import { useEffect, useMemo, useReducer, useRef, useState } from "react";
 import { clearAuth, createTrip, getEmail, getTrip, openTripStream, SessionExpiredError } from "./api";
-import AgentChat from "./components/AgentChat";
 import AuthForm from "./components/AuthForm";
-import ItineraryPanel from "./components/ItineraryPanel";
-import MapView from "./components/MapView";
+import MissionControl from "./components/MissionControl";
 import MyTrips from "./components/MyTrips";
 import PrintableItinerary from "./components/PrintableItinerary";
 import TripForm from "./components/TripForm";
 import { LangContext, getInitialLang, translations, type Lang } from "./i18n";
-import type { AgentMsg, Itinerary, Trip, TripInput } from "./types";
+import { derivePhase, initialStreamState, streamReducer } from "./streamState";
+import type { Trip, TripInput } from "./types";
 
 export default function App() {
   const [lang, setLang] = useState<Lang>(getInitialLang);
   const [userEmail, setUserEmail] = useState<string | null>(getEmail);
   const [view, setView] = useState<"planner" | "myTrips">("planner");
   const [trip, setTrip] = useState<Trip | null>(null);
-  const [messages, setMessages] = useState<AgentMsg[]>([]);
-  const [status, setStatus] = useState("idle");
-  const [itinerary, setItinerary] = useState<Itinerary | null>(null);
+  const [stream, dispatch] = useReducer(streamReducer, initialStreamState);
   const [error, setError] = useState("");
   const [selectedDay, setSelectedDay] = useState(0);
   const closeRef = useRef<(() => void) | null>(null);
@@ -30,7 +28,8 @@ export default function App() {
   }, [lang]);
 
   const t = translations[lang];
-  const planning = status === "pending" || status === "planning";
+  const { messages, status, itinerary } = stream;
+  const phase = derivePhase(trip, status);
 
   // Şəhərin mərkəzi ilk system mesajının payload-ından gəlir
   const cityCenter = useMemo<[number, number] | null>(() => {
@@ -50,10 +49,9 @@ export default function App() {
   const attachStream = (tripId: string) => {
     closeRef.current?.();
     closeRef.current = openTripStream(tripId, {
-      onMessage: (m) =>
-        setMessages((prev) => (prev.some((x) => x.id === m.id) ? prev : [...prev, m])),
-      onStatus: setStatus,
-      onItinerary: setItinerary,
+      onMessage: (m) => dispatch({ type: "live_message", msg: m }),
+      onStatus: (s) => dispatch({ type: "status", status: s }),
+      onItinerary: (it) => dispatch({ type: "itinerary", itinerary: it }),
       onDone: () => {},
       onError: (detail) => setError(detail),
     });
@@ -61,13 +59,12 @@ export default function App() {
 
   const start = async (input: Omit<TripInput, "language">) => {
     setError("");
-    setMessages([]);
-    setItinerary(null);
+    dispatch({ type: "reset" });
     setSelectedDay(0);
     try {
       const t2 = await createTrip({ ...input, language: lang });
       setTrip(t2);
-      setStatus("planning");
+      dispatch({ type: "status", status: "planning" });
       attachStream(t2.id);
     } catch (e) {
       handleApiError(e);
@@ -80,9 +77,12 @@ export default function App() {
     try {
       const detail = await getTrip(tripId);
       setTrip(detail);
-      setMessages(detail.messages);
-      setItinerary(detail.itinerary);
-      setStatus(detail.status);
+      dispatch({
+        type: "replay",
+        messages: detail.messages,
+        status: detail.status,
+        itinerary: detail.itinerary,
+      });
       setSelectedDay(0);
       setView("planner");
       if (detail.status === "pending" || detail.status === "planning") {
@@ -96,9 +96,7 @@ export default function App() {
   const reset = () => {
     closeRef.current?.();
     setTrip(null);
-    setMessages([]);
-    setItinerary(null);
-    setStatus("idle");
+    dispatch({ type: "reset" });
     setError("");
   };
 
@@ -133,8 +131,8 @@ export default function App() {
   return (
     <LangContext.Provider value={{ lang, setLang }}>
       {trip && itinerary && <PrintableItinerary trip={trip} itinerary={itinerary} />}
-      <div className="app-screen mx-auto flex min-h-screen max-w-6xl flex-col px-4 py-6">
-        <header className="relative mb-6 flex items-end justify-between pb-4 after:absolute after:inset-x-0 after:bottom-0 after:h-px after:bg-[linear-gradient(90deg,transparent,rgb(0_242_254/0.5),transparent)]">
+      <div className="app-screen mx-auto flex h-screen max-w-[1700px] flex-col px-4 py-5">
+        <header className="relative mb-5 flex items-end justify-between pb-4 after:absolute after:inset-x-0 after:bottom-0 after:h-px after:bg-[linear-gradient(90deg,transparent,rgb(0_242_254/0.5),transparent)]">
           <div>
             <h1 className="font-display text-3xl font-extrabold tracking-tight">
               Voyagent<span className="text-cyan drop-shadow-[0_0_6px_rgb(0_242_254/0.6)]">.</span>
@@ -155,14 +153,14 @@ export default function App() {
                       setView("myTrips");
                     }
                   }}
-                  className="rounded-md border border-line px-3 py-1.5 text-sm text-ink-soft hover:border-ink hover:text-ink"
+                  className="rounded-md border border-line px-3 py-1.5 text-sm text-ink-soft hover:border-cyan/50 hover:text-ink"
                 >
                   {view === "myTrips" ? t.backToPlanner : t.myTrips}
                 </button>
                 {trip && view === "planner" && (
                   <button
                     onClick={reset}
-                    className="rounded-md border border-line px-3 py-1.5 text-sm text-ink-soft hover:border-ink hover:text-ink"
+                    className="rounded-md border border-line px-3 py-1.5 text-sm text-ink-soft hover:border-cyan/50 hover:text-ink"
                   >
                     {t.newTrip}
                   </button>
@@ -195,57 +193,44 @@ export default function App() {
             }}
           />
         ) : view === "myTrips" ? (
-          <MyTrips onOpen={openPastTrip} onError={handleApiError} />
+          <div className="min-h-0 flex-1 overflow-y-auto">
+            <MyTrips onOpen={openPastTrip} onError={handleApiError} />
+          </div>
         ) : (
-          <main className="grid flex-1 gap-6 lg:grid-cols-[1fr_400px]">
-            <section className="min-w-0">
-              {!trip ? (
+          <AnimatePresence mode="wait">
+            {!trip ? (
+              <motion.div
+                key="form"
+                initial={{ opacity: 0, y: 12 }}
+                animate={{ opacity: 1, y: 0 }}
+                exit={{ opacity: 0, scale: 0.96, filter: "blur(4px)" }}
+                transition={{ duration: 0.3 }}
+                className="mx-auto w-full max-w-xl overflow-y-auto py-6"
+              >
                 <TripForm onSubmit={start} busy={false} />
-              ) : (
-                <div className="space-y-4">
-                  <div className="flex flex-wrap items-baseline gap-x-4 gap-y-1 rounded-lg border border-line bg-card px-4 py-3">
-                    <span className="font-display text-xl font-extrabold">{trip.city}</span>
-                    <span className="font-mono text-xs text-ink-soft">
-                      {trip.start_date} → {trip.end_date}
-                    </span>
-                    <span className="font-mono text-xs text-ink-soft">
-                      {trip.budget} {trip.currency} · {trip.travelers} {t.people}
-                    </span>
-                  </div>
-
-                  {cityCenter ? (
-                    <MapView
-                      center={cityCenter}
-                      itinerary={itinerary}
-                      selectedDay={selectedDay}
-                      currency={trip.currency}
-                    />
-                  ) : (
-                    <div className="flex h-64 items-center justify-center rounded-lg border border-dashed border-line text-sm text-ink-soft">
-                      {planning ? t.planningWait : t.noRoute}
-                    </div>
-                  )}
-
-                  {itinerary && (
-                    <ItineraryPanel
-                      itinerary={itinerary}
-                      currency={trip.currency}
-                      selectedDay={selectedDay}
-                      onSelectDay={setSelectedDay}
-                      tripId={trip.id}
-                      editable={status === "done"}
-                      onChange={setItinerary}
-                      onError={setError}
-                    />
-                  )}
-                </div>
-              )}
-            </section>
-
-            <div className="h-[75vh] lg:sticky lg:top-6">
-              <AgentChat messages={messages} planning={planning} />
-            </div>
-          </main>
+              </motion.div>
+            ) : (
+              <motion.div
+                key="mission"
+                initial={{ opacity: 0 }}
+                animate={{ opacity: 1 }}
+                transition={{ duration: 0.35 }}
+                className="flex min-h-0 flex-1 flex-col"
+              >
+                <MissionControl
+                  trip={trip}
+                  phase={phase}
+                  messages={messages}
+                  itinerary={itinerary}
+                  cityCenter={cityCenter}
+                  selectedDay={selectedDay}
+                  onSelectDay={setSelectedDay}
+                  onItineraryChange={(it) => dispatch({ type: "itinerary", itinerary: it })}
+                  onError={setError}
+                />
+              </motion.div>
+            )}
+          </AnimatePresence>
         )}
       </div>
     </LangContext.Provider>

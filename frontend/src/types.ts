@@ -32,6 +32,9 @@ export interface AgentMsg {
   role: "proposal" | "objection" | "revision" | "approval" | "final" | "info";
   content: string;
   payload?: Record<string, unknown> | null;
+  // Client-only: SSE ilə canlı gələn mesaj (typewriter alır), replay yox
+  live?: boolean;
+  receivedAt?: number;
 }
 
 export interface ItineraryItem {

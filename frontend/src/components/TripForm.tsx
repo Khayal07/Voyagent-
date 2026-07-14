@@ -41,14 +41,11 @@ export default function TripForm({ onSubmit, busy }: Props) {
   };
 
   const field =
-    "w-full rounded-md border border-line bg-card px-3 py-2 text-sm outline-none focus:border-ink focus:ring-2 focus:ring-ink/15";
+    "w-full rounded-md border border-line bg-void/60 px-3 py-2 text-sm outline-none focus:border-cyan/60 focus:ring-2 focus:ring-cyan/15";
   const label = "mb-1 block font-mono text-[11px] tracking-wider text-ink-soft uppercase";
 
   return (
-    <form
-      onSubmit={handleSubmit}
-      className="rounded-lg border border-line bg-card p-6 shadow-[0_1px_0_var(--color-line)]"
-    >
+    <form onSubmit={handleSubmit} className="hud-glass p-6">
       <h2 className="font-display text-2xl font-extrabold tracking-tight">{t.formTitle}</h2>
       <p className="mb-6 mt-1 text-sm text-ink-soft">{t.formSubtitle}</p>
 
@@ -75,7 +72,7 @@ export default function TripForm({ onSubmit, busy }: Props) {
               value={budget} onChange={(e) => setBudget(e.target.value)} />
             <select
               aria-label={t.currency}
-              className="rounded-md border border-line bg-card px-2 text-sm outline-none focus:border-ink"
+              className="rounded-md border border-line bg-void/60 px-2 text-sm outline-none focus:border-cyan/60"
               value={currency} onChange={(e) => setCurrency(e.target.value)}
             >
               {["USD", "EUR", "AZN"].map((c) => <option key={c}>{c}</option>)}
@@ -97,8 +94,8 @@ export default function TripForm({ onSubmit, busy }: Props) {
                   key={key} type="button" onClick={() => toggleInterest(key)} aria-pressed={active}
                   className={`rounded-full border px-3 py-1.5 text-sm transition-colors ${
                     active
-                      ? "border-ink bg-ink text-mist"
-                      : "border-line bg-card text-ink-soft hover:border-ink-soft"
+                      ? "border-cyan/60 bg-cyan/15 text-cyan"
+                      : "border-line bg-panel text-ink-soft hover:border-ink-soft"
                   }`}
                 >
                   {t.interestLabels[key]}
@@ -109,11 +106,11 @@ export default function TripForm({ onSubmit, busy }: Props) {
         </div>
       </div>
 
-      {error && <p className="mt-4 text-sm text-route">{error}</p>}
+      {error && <p className="mt-4 text-sm text-alert">{error}</p>}
 
       <button
         type="submit" disabled={busy}
-        className="mt-6 w-full rounded-md bg-route px-4 py-3 font-display text-base font-semibold text-white transition-colors hover:bg-route-deep disabled:opacity-50"
+        className="mt-6 w-full rounded-md bg-cyan px-4 py-3 font-display text-base font-semibold text-void transition-shadow hover:shadow-glow-cyan disabled:opacity-50"
       >
         {busy ? t.submitBusy : t.submit}
       </button>

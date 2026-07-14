@@ -57,7 +57,7 @@ export default function MapView({ center, itinerary, selectedDay, currency }: Pr
   }, [days, selectedDay]);
 
   return (
-    <div className="h-[420px] overflow-hidden rounded-lg border border-line">
+    <div className="h-full min-h-[300px] overflow-hidden">
       <MapContainer center={center} zoom={12} className="h-full w-full" scrollWheelZoom>
         <TileLayer url={TILE_URL} attribution={TILE_ATTRIBUTION} />
         {days.map((d) => {

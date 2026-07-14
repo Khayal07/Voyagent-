@@ -35,7 +35,7 @@ export default function MyTrips({ onOpen, onError }: Props) {
         <li key={trip.id}>
           <button
             onClick={() => onOpen(trip.id)}
-            className="flex w-full flex-wrap items-baseline gap-x-4 gap-y-1 rounded-lg border border-line bg-card px-4 py-3 text-left transition-colors hover:border-ink"
+            className="flex w-full flex-wrap items-baseline gap-x-4 gap-y-1 rounded-lg border border-line bg-panel px-4 py-3 text-left transition-colors hover:border-cyan/50"
           >
             <span className="font-display text-lg font-extrabold">{trip.city}</span>
             <span className="font-mono text-xs text-ink-soft">
@@ -46,7 +46,7 @@ export default function MyTrips({ onOpen, onError }: Props) {
             </span>
             <span
               className={`ml-auto font-mono text-[11px] uppercase tracking-wider ${
-                trip.status === "done" ? "text-ink-soft" : "text-route"
+                trip.status === "done" ? "text-ok" : "text-cyan"
               }`}
             >
               {trip.status}
