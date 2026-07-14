@@ -1,4 +1,4 @@
-import { useReducedMotion } from "motion/react";
+import { motion, useReducedMotion } from "motion/react";
 import { useEffect, useMemo, useRef, useState } from "react";
 import { useT } from "../../i18n";
 import type { AgentMsg } from "../../types";
@@ -99,6 +99,22 @@ export default function ConsensusStream({ messages, planning, failed }: Props) {
             <span className="typing-dot h-1.5 w-1.5 rounded-full bg-cyan" />
             <span className="typing-dot h-1.5 w-1.5 rounded-full bg-cyan" />
           </div>
+        )}
+
+        {/* Yekun ştamp — typewriter növbəsi bitəndən sonra */}
+        {!planning && messages.length > 0 && activeId == null && (
+          <motion.div
+            initial={reduced ? false : { opacity: 0, scale: 0.92 }}
+            animate={{ opacity: 1, scale: 1 }}
+            transition={{ type: "spring", stiffness: 260, damping: 20 }}
+            className={`mt-3 rounded border py-2 text-center font-mono text-[10px] font-semibold tracking-[0.3em] ${
+              failed
+                ? "border-alert/60 bg-alert/10 text-alert"
+                : "border-ok/50 bg-ok/10 text-ok"
+            }`}
+          >
+            ✦ {failed ? t.missionFailed : t.missionComplete}
+          </motion.div>
         )}
       </div>
     </div>

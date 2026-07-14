@@ -65,6 +65,8 @@ export function useAgentStatuses(messages: AgentMsg[], status: string) {
 
     if (status === "done") {
       for (const a of AGENT_NAMES) statuses[a] = "approved";
+      // Yekun plan çıxıbsa açıq qalan etirazlar da konsensusla bağlanmış sayılır
+      for (const c of conflicts) c.resolved = true;
     } else if (status === "pending" || status === "planning") {
       // Radar süpürməsi son danışan agentdə qalır (yalnız canlı mesaj üçün)
       if (

@@ -21,6 +21,8 @@ interface PayloadItem {
   est_cost?: unknown;
   lat?: unknown;
   lon?: unknown;
+  llm_lat?: unknown;
+  llm_lon?: unknown;
 }
 
 interface PayloadDay {
@@ -43,11 +45,14 @@ export function useLivePoints(messages: AgentMsg[], itinerary: Itinerary | null)
       for (const d of days as PayloadDay[]) {
         if (!Array.isArray(d.items)) continue;
         for (const it of d.items) {
-          if (typeof it.lat === "number" && typeof it.lon === "number" && typeof it.name === "string") {
+          // Geokod hələ işləməyibsə LLM-in təxmini koordinatına düş (llm_lat/llm_lon)
+          const lat = typeof it.lat === "number" ? it.lat : typeof it.llm_lat === "number" ? it.llm_lat : null;
+          const lon = typeof it.lon === "number" ? it.lon : typeof it.llm_lon === "number" ? it.llm_lon : null;
+          if (lat != null && lon != null && typeof it.name === "string") {
             points.push({
               name: it.name,
-              lat: it.lat,
-              lon: it.lon,
+              lat,
+              lon,
               day: typeof d.day === "number" ? d.day : 1,
               category: typeof it.category === "string" ? it.category : "other",
               est_cost: typeof it.est_cost === "number" ? it.est_cost : 0,

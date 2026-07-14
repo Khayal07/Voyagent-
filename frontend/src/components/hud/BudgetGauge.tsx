@@ -1,4 +1,5 @@
-import { motion, useReducedMotion } from "motion/react";
+import { motion, useReducedMotion, useSpring, useTransform } from "motion/react";
+import { useEffect } from "react";
 import { useT } from "../../i18n";
 import type { BudgetAllocation } from "../../lib/budget";
 
@@ -15,6 +16,14 @@ export default function BudgetGauge({ alloc, currency }: Props) {
   const t = useT();
   const reduced = useReducedMotion();
   const { budget, over } = alloc;
+
+  // Mərkəzdəki rəqəm asta spring ilə "sayır"
+  const spentSpring = useSpring(alloc.spent, { stiffness: 60, damping: 16 });
+  useEffect(() => {
+    if (reduced) spentSpring.jump(alloc.spent);
+    else spentSpring.set(alloc.spent);
+  }, [alloc.spent, reduced, spentSpring]);
+  const spentText = useTransform(spentSpring, (v) => String(Math.round(v)));
 
   const segments = [
     { key: "lodging", value: alloc.lodging, color: "#00f2fe", label: t.gauge.lodging },
@@ -77,13 +86,13 @@ export default function BudgetGauge({ alloc, currency }: Props) {
                 ),
             )}
           </g>
-          <text
+          <motion.text
             x="50" y="47" textAnchor="middle"
             style={{ font: "700 15px 'IBM Plex Mono', monospace" }}
             fill={over ? "#ff3366" : "#e6edf7"}
           >
-            {Math.round(alloc.spent)}
-          </text>
+            {spentText}
+          </motion.text>
           <text
             x="50" y="61" textAnchor="middle"
             style={{ font: "400 8.5px 'IBM Plex Mono', monospace" }}

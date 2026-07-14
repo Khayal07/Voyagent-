@@ -1,5 +1,5 @@
 import L from "leaflet";
-import { useEffect, useMemo, type RefObject } from "react";
+import { useEffect, useMemo, useRef, useState, type RefObject } from "react";
 import { MapContainer, Marker, Polyline, Popup, TileLayer, Tooltip, useMap } from "react-leaflet";
 import { useT } from "../i18n";
 import type { LivePoint } from "../hooks/useLivePoints";
@@ -13,26 +13,37 @@ const TILE_URL = "https://{s}.basemaps.cartocdn.com/dark_all/{z}/{x}/{y}{r}.png"
 const TILE_ATTRIBUTION =
   '&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> &copy; <a href="https://carto.com/attributions">CARTO</a>';
 
-function numberIcon(color: string, n: number) {
+// isNew: marker ilk dəfə görünür — yuxarıdan düşür + sonar dalğası yayılır
+function numberIcon(color: string, n: number, isNew: boolean) {
+  const pin =
+    `<div class="${isNew ? "geo-drop" : ""}" style="background:#0b0f19;color:${color};width:26px;height:26px;border-radius:50% 50% 50% 0;` +
+    `transform:rotate(-45deg);display:flex;align-items:center;justify-content:center;` +
+    `border:2px solid ${color};box-shadow:0 0 8px ${color}66">` +
+    `<span style="transform:rotate(45deg);font:600 12px 'IBM Plex Mono',monospace">${n}</span></div>`;
+  const ring = isNew
+    ? `<span class="sonar-ring" style="position:absolute;left:-7px;top:6px;width:40px;height:40px;` +
+      `border-radius:50%;border:2px solid ${color};pointer-events:none"></span>`
+    : "";
   return L.divIcon({
     className: "",
-    html:
-      `<div style="background:#0b0f19;color:${color};width:26px;height:26px;border-radius:50% 50% 50% 0;` +
-      `transform:rotate(-45deg);display:flex;align-items:center;justify-content:center;` +
-      `border:2px solid ${color};box-shadow:0 0 8px ${color}66">` +
-      `<span style="transform:rotate(45deg);font:600 12px 'IBM Plex Mono',monospace">${n}</span></div>`,
+    html: `<div style="position:relative">${pin}${ring}</div>`,
     iconSize: [26, 26],
     iconAnchor: [13, 26],
   });
 }
 
 // Danışıq zamanı düşən aralıq nöqtələr — qızılı, nömrəsiz
-function liveIcon() {
+function liveIcon(isNew: boolean) {
+  const dot =
+    `<div class="${isNew ? "geo-drop" : ""}" style="width:12px;height:12px;border-radius:50%;background:#0b0f19;` +
+    `border:2px solid #d4af37;box-shadow:0 0 8px rgb(212 175 55 / .6)"></div>`;
+  const ring = isNew
+    ? `<span class="sonar-ring" style="position:absolute;left:-10px;top:-10px;width:32px;height:32px;` +
+      `border-radius:50%;border:2px solid #d4af37;pointer-events:none"></span>`
+    : "";
   return L.divIcon({
     className: "",
-    html:
-      `<div style="width:12px;height:12px;border-radius:50%;background:#0b0f19;` +
-      `border:2px solid #d4af37;box-shadow:0 0 8px rgb(212 175 55 / .6)"></div>`,
+    html: `<div style="position:relative">${dot}${ring}</div>`,
     iconSize: [12, 12],
     iconAnchor: [6, 6],
   });
@@ -80,6 +91,30 @@ export default function MapView({
   const t = useT();
   const days = itinerary?.days ?? [];
 
+  // Sonar yalnız YENİ adlar üçün: mount anında mövcud olanlar (replay) heç vaxt düşmür,
+  // animasiya bitəndən sonra siyahı boşalır ki, filtr re-render-i təkrar düşürməsin.
+  const seenRef = useRef<Set<string> | null>(null);
+  const [newNames, setNewNames] = useState<Set<string>>(() => new Set());
+  const allNames = useMemo(() => {
+    const names: string[] = [];
+    for (const d of days) for (const i of d.items) names.push(i.name);
+    for (const p of livePoints ?? []) names.push(p.name);
+    return names;
+  }, [days, livePoints]);
+  if (seenRef.current === null) seenRef.current = new Set(allNames);
+  const namesKey = allNames.join("|");
+  useEffect(() => {
+    const seen = seenRef.current!;
+    const fresh = allNames.filter((n) => !seen.has(n));
+    for (const n of fresh) seen.add(n);
+    if (fresh.length > 0) {
+      setNewNames(new Set(fresh));
+      const id = setTimeout(() => setNewNames(new Set()), 1700);
+      return () => clearTimeout(id);
+    }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [namesKey]);
+
   const focusPoints = useMemo<[number, number][]>(() => {
     if (days.length === 0 && livePoints && livePoints.length > 0) {
       return livePoints.map((p) => [p.lat, p.lon] as [number, number]);
@@ -106,8 +141,8 @@ export default function MapView({
 
         {/* Yekundan əvvəl: son təklifin nöqtələri (qızılı) */}
         {days.length === 0 &&
-          livePoints?.map((p) => (
-            <Marker key={`live-${p.name}`} position={[p.lat, p.lon]} icon={liveIcon()}>
+          livePoints?.map((p, idx) => (
+            <Marker key={`live-${p.day}-${idx}-${p.name}`} position={[p.lat, p.lon]} icon={liveIcon(newNames.has(p.name))}>
               <Tooltip direction="top" offset={[0, -8]} opacity={0.95}>
                 <span style={{ font: "500 12px Archivo, sans-serif" }}>{p.name}</span>
               </Tooltip>
@@ -124,7 +159,12 @@ export default function MapView({
             <div key={d.day}>
               <Polyline
                 positions={points}
-                pathOptions={{ color, dashArray: "8 8", weight: 3, opacity: dimmed ? 0.15 : 0.85 }}
+                pathOptions={{
+                  color,
+                  weight: 3,
+                  opacity: dimmed ? 0.15 : 0.85,
+                  className: "route-flow", // axan tirələr — hərəkət istiqaməti nöqtə sırasıdır
+                }}
               />
               {d.items
                 .filter((i) => i.lat != null && i.lon != null)
@@ -132,7 +172,7 @@ export default function MapView({
                   <Marker
                     key={`${d.day}-${i.name}`}
                     position={[i.lat!, i.lon!]}
-                    icon={numberIcon(dimmed ? "#3a4a6b" : color, idx + 1)}
+                    icon={numberIcon(dimmed ? "#3a4a6b" : color, idx + 1, newNames.has(i.name))}
                   >
                     <Tooltip direction="top" offset={[0, -26]} opacity={0.95}>
                       <span style={{ font: "500 12px Archivo, sans-serif" }}>{i.name}</span>
