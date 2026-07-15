@@ -1,4 +1,5 @@
 import { useState } from "react";
+import { shareTrip } from "../api";
 import { useAgentStatuses } from "../hooks/useAgentStatuses";
 import { useLivePoints } from "../hooks/useLivePoints";
 import { useT } from "../i18n";
@@ -20,6 +21,7 @@ interface Props {
   onSelectDay: (day: number) => void;
   onItineraryChange: (it: Itinerary) => void;
   onError: (detail: string) => void;
+  readOnly?: boolean;
 }
 
 export default function MissionControl({
@@ -33,8 +35,26 @@ export default function MissionControl({
   onSelectDay,
   onItineraryChange,
   onError,
+  readOnly = false,
 }: Props) {
   const t = useT();
+  const [copied, setCopied] = useState(false);
+
+  const handleShare = async () => {
+    try {
+      const { token } = await shareTrip(trip.id);
+      const url = `${window.location.origin}/?share=${token}`;
+      try {
+        await navigator.clipboard.writeText(url);
+      } catch {
+        window.prompt(t.share, url); // clipboard icazəsi olmayanda linki əl ilə köçürmək üçün
+      }
+      setCopied(true);
+      setTimeout(() => setCopied(false), 2500);
+    } catch (e) {
+      onError(e instanceof Error ? e.message : t.requestFailed);
+    }
+  };
   const [mobileTab, setMobileTab] = useState<"war" | "map">("war");
   const planning = phase === "streaming";
   const { statuses, conflicts } = useAgentStatuses(messages, status);
@@ -73,6 +93,21 @@ export default function MissionControl({
             <span className="font-mono text-xs text-muted">
               {trip.budget} {trip.currency} · {trip.travelers} {t.people}
             </span>
+            {!readOnly && phase === "done" && (
+              <button
+                onClick={handleShare}
+                className={`ml-auto rounded-lg border border-line px-2.5 py-1 font-mono text-[11px] uppercase tracking-wider transition-all hover:bg-surface active:translate-y-px ${
+                  copied ? "text-ok" : "text-primary-deep"
+                }`}
+              >
+                {copied ? `✓ ${t.shareCopied}` : t.share}
+              </button>
+            )}
+            {readOnly && (
+              <span className="ml-auto rounded-md bg-surface-2 px-2 py-0.5 font-mono text-[10px] tracking-widest text-muted">
+                {t.viewOnly}
+              </span>
+            )}
           </div>
           <AgentNodeBar statuses={statuses} />
           <ConflictBadge conflicts={conflicts} />
@@ -102,6 +137,7 @@ export default function MissionControl({
               onItineraryChange={onItineraryChange}
               onError={onError}
               visible={mobileTab === "map"}
+              readOnly={readOnly}
             />
           </div>
         </section>

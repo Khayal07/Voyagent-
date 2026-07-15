@@ -54,14 +54,18 @@ async def test_unsupported_base_returns_none():
     assert await rates_module.get_rates("XYZ") is None
 
 
-async def test_endpoint_requires_auth(client):
+# Endpoint ictimaidir — paylaşma (share) görünüşü auth-suz istifadə edir
+async def test_endpoint_public(client, monkeypatch):
+    async def fake_rates(base):
+        return {"EUR": 0.9}
+
+    monkeypatch.setattr("app.routers.rates.get_rates", fake_rates)
     resp = await client.get("/api/rates?base=USD")
-    assert resp.status_code == 401
+    assert resp.status_code == 200
 
 
 async def test_endpoint_validates_base(client, monkeypatch):
-    headers = await register_user(client, email="rates@example.com")
-    resp = await client.get("/api/rates?base=GBP", headers=headers)
+    resp = await client.get("/api/rates?base=GBP")
     assert resp.status_code == 422
 
 

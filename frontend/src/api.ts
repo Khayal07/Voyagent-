@@ -64,6 +64,15 @@ export function getTrip(tripId: string): Promise<TripDetail> {
   return request(`/api/trips/${tripId}`);
 }
 
+export function shareTrip(tripId: string): Promise<{ token: string }> {
+  return request(`/api/trips/${tripId}/share`, { method: "POST" });
+}
+
+// Auth tələb etmir — token bilən hər kəs oxu-yalnız baxır
+export function getSharedTrip(token: string): Promise<TripDetail> {
+  return request(`/api/trips/shared/${encodeURIComponent(token)}`);
+}
+
 export function getRates(base: string): Promise<{ base: string; rates: Record<string, number> }> {
   return request(`/api/rates?base=${encodeURIComponent(base)}`);
 }

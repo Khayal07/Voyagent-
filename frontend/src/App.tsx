@@ -1,6 +1,6 @@
 import { AnimatePresence, motion } from "motion/react";
 import { useEffect, useMemo, useReducer, useRef, useState } from "react";
-import { clearAuth, createTrip, getEmail, getTrip, openTripStream, SessionExpiredError } from "./api";
+import { clearAuth, createTrip, getEmail, getSharedTrip, getTrip, openTripStream, SessionExpiredError } from "./api";
 import AuthForm from "./components/AuthForm";
 import MissionControl from "./components/MissionControl";
 import MyTrips from "./components/MyTrips";
@@ -19,8 +19,25 @@ export default function App() {
   const [error, setError] = useState("");
   const [selectedDay, setSelectedDay] = useState(0);
   const closeRef = useRef<(() => void) | null>(null);
+  // Oxu-yalnız paylaşma rejimi: /?share=TOKEN — auth tələb olunmur
+  const [shareToken] = useState(() => new URLSearchParams(window.location.search).get("share"));
 
   useEffect(() => () => closeRef.current?.(), []);
+
+  useEffect(() => {
+    if (!shareToken) return;
+    getSharedTrip(shareToken)
+      .then((detail) => {
+        setTrip(detail);
+        dispatch({
+          type: "replay",
+          messages: detail.messages,
+          status: detail.status,
+          itinerary: detail.itinerary,
+        });
+      })
+      .catch(() => setError(translations[getInitialLang()].shareInvalid));
+  }, [shareToken]);
 
   useEffect(() => {
     localStorage.setItem("voyagent-lang", lang);
@@ -141,7 +158,12 @@ export default function App() {
           </div>
           <div className="flex flex-wrap items-center justify-end gap-2 sm:gap-3">
             {langSwitcher}
-            {userEmail && (
+            {shareToken && (
+              <span className="rounded-md bg-surface-2 px-2 py-1 font-mono text-[10px] tracking-widest text-muted">
+                {t.viewOnly}
+              </span>
+            )}
+            {userEmail && !shareToken && (
               <>
                 <button
                   onClick={() => {
@@ -185,7 +207,27 @@ export default function App() {
           </div>
         )}
 
-        {!userEmail ? (
+        {shareToken ? (
+          trip ? (
+            <div className="flex min-h-0 flex-1 flex-col">
+              <MissionControl
+                trip={trip}
+                phase={phase}
+                status={status}
+                messages={messages}
+                itinerary={itinerary}
+                cityCenter={cityCenter}
+                selectedDay={selectedDay}
+                onSelectDay={setSelectedDay}
+                onItineraryChange={(it) => dispatch({ type: "itinerary", itinerary: it })}
+                onError={setError}
+                readOnly
+              />
+            </div>
+          ) : !error ? (
+            <p className="py-10 text-center font-mono text-sm text-muted">{t.loadingTrip}</p>
+          ) : null
+        ) : !userEmail ? (
           <AuthForm
             onAuthed={(email) => {
               setError("");

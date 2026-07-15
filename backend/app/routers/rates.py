@@ -1,12 +1,12 @@
-from fastapi import APIRouter, Depends, HTTPException, Query
+from fastapi import APIRouter, HTTPException, Query
 
-from ..auth import get_current_user
 from ..services.rates import SUPPORTED, get_rates
 
 router = APIRouter(prefix="/api/rates", tags=["rates"])
 
 
-@router.get("", dependencies=[Depends(get_current_user)])
+# Auth yoxdur — ictimai məzənnə datası, paylaşma görünüşü də istifadə edir
+@router.get("")
 async def rates(base: str = Query("USD")):
     base = base.upper()
     if base not in SUPPORTED:

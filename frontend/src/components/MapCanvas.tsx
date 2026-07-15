@@ -22,6 +22,7 @@ interface Props {
   onItineraryChange: (it: Itinerary) => void;
   onError: (detail: string) => void;
   visible?: boolean; // mobil tab görünəndə Leaflet ölçünü yeniləməlidir
+  readOnly?: boolean; // paylaşma görünüşü — drag&drop redaktəsi bağlıdır
 }
 
 // Tam-ekran xəritə + üstündə HUD qatı (solid panellər)
@@ -36,6 +37,7 @@ export default function MapCanvas({
   onItineraryChange,
   onError,
   visible = true,
+  readOnly = false,
 }: Props) {
   const t = useT();
   const mapRef = useRef<L.Map | null>(null);
@@ -140,7 +142,7 @@ export default function MapCanvas({
             selectedDay={selectedDay}
             onSelectDay={onSelectDay}
             tripId={trip.id}
-            editable={phase === "done"}
+            editable={phase === "done" && !readOnly}
             onChange={onItineraryChange}
             onError={onError}
           />
