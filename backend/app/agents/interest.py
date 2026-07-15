@@ -57,6 +57,8 @@ async def propose(
         prompts.interest_propose(
             trip.city, num_days, list(trip.interests or []), trip.travelers, trip.currency, trip.language,
             pois_text=prompts.poi_block(pois or {}), weather_text=weather_text,
+            must_visit=list(trip.must_visit or []), avoid=list(trip.avoid or []),
+            pace=trip.pace or "normal",
         ),
         max_tokens=1500,
     )
@@ -72,7 +74,8 @@ async def revise(
     data, llm = await ask_json(
         prompts.INTEREST_SYSTEM,
         prompts.interest_revise(
-            trip.city, trip.currency, objections, trip.language, pois_text=prompts.poi_block(pois or {})
+            trip.city, trip.currency, objections, trip.language, pois_text=prompts.poi_block(pois or {}),
+            must_visit=list(trip.must_visit or []), avoid=list(trip.avoid or []),
         ),
         max_tokens=800,
     )

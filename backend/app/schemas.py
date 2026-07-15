@@ -37,6 +37,9 @@ class TripCreate(BaseModel):
     currency: str = Field(default="USD", min_length=3, max_length=3)
     travelers: int = Field(default=1, ge=1, le=20)
     interests: list[str] = Field(default_factory=list, max_length=10)
+    must_visit: list[str] = Field(default_factory=list, max_length=5)
+    avoid: list[str] = Field(default_factory=list, max_length=5)
+    pace: str = Field(default="normal", pattern="^(relaxed|normal|intense)$")
     language: str = Field(default="en", pattern="^(az|en)$")
 
     @model_validator(mode="after")
@@ -45,6 +48,9 @@ class TripCreate(BaseModel):
             raise ValueError("end_date start_date-dən əvvəl ola bilməz")
         if (self.end_date - self.start_date).days + 1 > MAX_TRIP_DAYS:
             raise ValueError(f"Maksimum {MAX_TRIP_DAYS} günlük səyahət dəstəklənir")
+        # Yer siyahıları: boşları at, hər adı 80 simvola kəs
+        self.must_visit = [s.strip()[:80] for s in self.must_visit if s and s.strip()]
+        self.avoid = [s.strip()[:80] for s in self.avoid if s and s.strip()]
         return self
 
 
@@ -86,6 +92,9 @@ class TripOut(BaseModel):
     currency: str
     travelers: int
     interests: list
+    must_visit: list | None = None
+    avoid: list | None = None
+    pace: str = "normal"
     language: str
     status: str
     created_at: datetime

@@ -26,15 +26,36 @@ def poi_block(pois: dict[str, list[dict]]) -> str:
     return f"Verified real places nearby (PREFER these, use EXACT names):\n{lines}\n" if lines else ""
 
 
+PACE_LINES = {
+    "relaxed": "Suggest exactly 2 activities per day (relaxed pace; real places, cluster nearby ones on the same day).\n",
+    "normal": "Suggest 3-4 activities per day (you decide per day; real places, cluster nearby ones on the same day).\n",
+    "intense": "Suggest 4 activities per day (packed pace; real places, cluster nearby ones on the same day).\n",
+}
+
+
+def must_visit_block(must_visit: list[str]) -> str:
+    if not must_visit:
+        return ""
+    return f"User MUST-VISIT places — include EACH of them on a suitable day (official names): {'; '.join(must_visit)}.\n"
+
+
+def avoid_block(avoid: list[str]) -> str:
+    if not avoid:
+        return ""
+    return f"NEVER suggest these places (user excluded them): {'; '.join(avoid)}.\n"
+
+
 def interest_propose(
     city: str, num_days: int, interests: list[str], travelers: int, currency: str, lang: str,
     pois_text: str = "", weather_text: str = "",
+    must_visit: list[str] | None = None, avoid: list[str] | None = None, pace: str = "normal",
 ) -> str:
     ints = ", ".join(interests) if interests else "general"
     return (
         f"City: {city}. Days: {num_days}. Interests: {ints}. Travelers: {travelers}.\n"
-        + pois_text + weather_text +
-        "Suggest 3-4 activities per day (you decide per day; real places, cluster nearby ones on the same day).\n"
+        + pois_text + weather_text
+        + must_visit_block(must_visit or []) + avoid_block(avoid or [])
+        + PACE_LINES.get(pace, PACE_LINES["normal"]) +
         '"name" must be ONLY the official original name of the place (local language/English, findable on '
         'OpenStreetMap) — no descriptions, translations or extra words. Good: "Fontana di Trevi". '
         'Bad: "Seeing the Trevi fountain".\n'
@@ -46,11 +67,18 @@ def interest_propose(
     )
 
 
-def interest_revise(city: str, currency: str, objections: list[dict], lang: str, pois_text: str = "") -> str:
+def interest_revise(
+    city: str, currency: str, objections: list[dict], lang: str, pois_text: str = "",
+    must_visit: list[str] | None = None, avoid: list[str] | None = None,
+) -> str:
     lines = "\n".join(f'- Day {o["day"]}: "{o["name"]}" — {o["reason"]}' for o in objections)
+    keep = (
+        f"Prefer to keep user-requested must-visit places unless they are the objected item: {'; '.join(must_visit)}.\n"
+        if must_visit else ""
+    )
     return (
         f"City: {city}. Your proposal received these objections:\n{lines}\n"
-        + pois_text +
+        + pois_text + keep + avoid_block(avoid or []) +
         "For EACH objected place suggest 1 alternative on the SAME day with a similar interest "
         "(matching the request: cheaper or closer).\n"
         '"name" must be ONLY the official original name (local/English), no extra words.\n'
