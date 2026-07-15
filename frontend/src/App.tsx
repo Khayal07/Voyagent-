@@ -139,7 +139,7 @@ export default function App() {
             </h1>
             <p className="font-mono text-[11px] tracking-[0.25em] text-muted">{t.tagline}</p>
           </div>
-          <div className="flex items-center gap-3">
+          <div className="flex flex-wrap items-center justify-end gap-2 sm:gap-3">
             {langSwitcher}
             {userEmail && (
               <>

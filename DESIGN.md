@@ -16,11 +16,14 @@ Mid-century airline route map: white paper, ochre sun, ink-blue routes, precise 
 | `--color-line` | `oklch(0.88 0.012 260)` | 1px borders |
 | `--color-ink` | `oklch(0.22 0.03 260)` | primary text (≥7:1 on bg) |
 | `--color-muted` | `oklch(0.47 0.025 260)` | secondary text (≥4.5:1 on bg) |
-| `--color-primary` | `oklch(0.62 0.12 77)` | ochre — primary buttons (white text), markers, gauge, selection |
-| `--color-primary-deep` | `oklch(0.5 0.11 72)` | ochre pressed/hover, small ochre text on white |
+| `--color-primary` | `oklch(0.55 0.12 75)` | ochre — primary buttons (white text), selection |
+| `--color-primary-bright` | `oklch(0.68 0.13 77)` | ochre for graphics: markers, gauge (3:1 floor) |
+| `--color-primary-deep` | `oklch(0.46 0.1 70)` | ochre pressed/hover, small ochre text on white |
 | `--color-accent` | `oklch(0.38 0.08 260)` | ink-blue — route lines, links, stream thread |
-| `--color-ok` | `oklch(0.55 0.13 155)` | success / approved |
+| `--color-ok` | `oklch(0.52 0.14 152)` | success / approved |
 | `--color-alert` | `oklch(0.55 0.2 25)` | error / budget conflict / objection |
+
+Day route colors (`DAY_COLORS` in `MapView.tsx`, shared by HUD chips): `#9a6a10`, `#33568f`, `#7b4bab`, `#1f7a4d`, `#b03052` — dark enough for white text and legible on the light map.
 
 Agent identity colors (dark enough for text on white, distinct hues):
 interest `oklch(0.5 0.14 300)` violet · budget `oklch(0.5 0.13 155)` green · logistics `oklch(0.52 0.12 60)` amber-brown · planner `oklch(0.45 0.09 250)` blue · system `oklch(0.47 0.025 260)` (= muted).

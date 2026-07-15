@@ -1,4 +1,4 @@
-﻿import {
+import {
   DndContext,
   KeyboardSensor,
   PointerSensor,
@@ -87,7 +87,7 @@ function SortableItem({
           onClick={onDelete}
           className="rounded px-1 font-mono text-xs text-muted opacity-0 transition-opacity hover:text-alert group-hover:opacity-100"
         >
-          âœ•
+          ✕
         </button>
       )}
     </li>
@@ -149,7 +149,7 @@ export default function ItineraryPanel({
     if (fromIdx < 0) return;
 
     if (fromDay === toDay) {
-      // arrayMove â€” aÅŸaÄŸÄ± sÃ¼rÃ¼ÅŸdÃ¼rÉ™ndÉ™ hÉ™dÉ™fin ARXASINA dÃ¼ÅŸÃ¼r (dnd-kit semantikasÄ±)
+      // arrayMove — aşağı sürüşdürəndə hədəfin ARXASINA düşür (dnd-kit semantikası)
       const toIdx = toName ? src.indexOf(toName) : src.length - 1;
       if (toIdx < 0 || toIdx === fromIdx) return;
       names.set(fromDay, arrayMove(src, fromIdx, toIdx));
@@ -183,7 +183,7 @@ export default function ItineraryPanel({
             <span className="font-mono text-xs font-normal text-muted">{d.date}</span>
             {d.weather && (
               <span className="ml-auto font-mono text-xs font-normal text-muted">
-                {weatherEmoji(d.weather.code)} {d.weather.t_max}Â°/{d.weather.t_min}Â°
+                {weatherEmoji(d.weather.code)} {d.weather.t_max}°/{d.weather.t_min}°
               </span>
             )}
           </h3>
@@ -247,7 +247,7 @@ export default function ItineraryPanel({
           onClick={() => window.print()}
           className="ml-auto rounded-md border border-line px-3 py-1 font-mono text-xs text-muted transition-colors hover:bg-surface hover:text-ink"
         >
-          â¤“ {t.exportPdf}
+          ⤓ {t.exportPdf}
         </button>
       </div>
 
@@ -267,7 +267,7 @@ export default function ItineraryPanel({
 
       {itinerary.lodging && (
         <div className="border-t border-line px-4 py-2 text-right font-mono text-xs text-muted">
-          {t.lodging}: {itinerary.lodging.nights} {t.nights} Ã— {itinerary.lodging.rooms} {t.rooms} Ã—{" "}
+          {t.lodging}: {itinerary.lodging.nights} {t.nights} × {itinerary.lodging.rooms} {t.rooms} ×{" "}
           {itinerary.lodging.nightly} {currency} = {itinerary.lodging.total} {currency}
         </div>
       )}
@@ -278,10 +278,10 @@ export default function ItineraryPanel({
         </strong>
         {rates && (
           <div className="mt-0.5 text-xs text-muted">
-            â‰ˆ{" "}
+            ≈{" "}
             {Object.entries(rates)
               .map(([cur, rate]) => `${(itinerary.total_cost * rate).toFixed(2)} ${cur}`)
-              .join(" Â· ")}
+              .join(" · ")}
           </div>
         )}
       </div>

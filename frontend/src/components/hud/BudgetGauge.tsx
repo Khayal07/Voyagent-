@@ -47,7 +47,7 @@ export default function BudgetGauge({ alloc, currency }: Props) {
     : { type: "spring" as const, stiffness: 60, damping: 16 };
 
   return (
-    <div className="hud-panel w-44 px-3 py-2.5">
+    <div className="hud-panel w-52 px-3 py-2.5">
       <div className="mb-1 font-mono text-[9px] font-medium tracking-[0.18em] text-muted">
         {t.budgetGauge}
       </div>
