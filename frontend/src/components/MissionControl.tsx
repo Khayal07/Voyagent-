@@ -44,8 +44,8 @@ export default function MissionControl({
     <button
       onClick={() => setMobileTab(tab)}
       aria-pressed={mobileTab === tab}
-      className={`flex-1 rounded-md px-3 py-2 font-mono text-xs uppercase tracking-wider transition-colors ${
-        mobileTab === tab ? "bg-cyan text-void" : "bg-panel text-ink-soft"
+      className={`flex-1 rounded-lg border px-3 py-2 font-mono text-xs uppercase tracking-wider transition-colors ${
+        mobileTab === tab ? "border-ink bg-ink text-white" : "border-line bg-bg text-muted"
       }`}
     >
       {label}
@@ -65,12 +65,12 @@ export default function MissionControl({
         <section
           className={`${mobileTab === "war" ? "flex" : "hidden"} min-h-0 flex-col gap-3 lg:flex`}
         >
-          <div className="hud-glass flex flex-wrap items-baseline gap-x-4 gap-y-1 px-4 py-3">
-            <span className="font-display text-xl font-extrabold">{trip.city}</span>
-            <span className="font-mono text-xs text-ink-soft">
+          <div className="panel flex flex-wrap items-baseline gap-x-4 gap-y-1 px-4 py-3">
+            <span className="font-display text-xl font-semibold">{trip.city}</span>
+            <span className="font-mono text-xs text-muted">
               {trip.start_date} → {trip.end_date}
             </span>
-            <span className="font-mono text-xs text-ink-soft">
+            <span className="font-mono text-xs text-muted">
               {trip.budget} {trip.currency} · {trip.travelers} {t.people}
             </span>
           </div>
@@ -88,7 +88,7 @@ export default function MissionControl({
         <section
           className={`${
             mobileTab === "map" ? "flex" : "hidden"
-          } relative min-h-0 flex-col overflow-hidden rounded-xl border border-line lg:flex`}
+          } panel relative min-h-0 flex-col overflow-hidden lg:flex`}
         >
           <div className="min-h-0 flex-1">
             <MapCanvas

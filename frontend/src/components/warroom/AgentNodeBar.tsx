@@ -10,7 +10,7 @@ export default function AgentNodeBar({ statuses }: Props) {
   const reduced = useReducedMotion();
   return (
     <motion.div
-      className="hud-glass flex items-start justify-around px-3 py-3"
+      className="panel flex items-start justify-around px-3 py-3"
       initial={reduced ? false : "hidden"}
       animate="show"
       variants={{ show: { transition: { staggerChildren: 0.06 } } }}

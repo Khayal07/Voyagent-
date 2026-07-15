@@ -40,11 +40,8 @@ export default function ConflictBadge({ conflicts }: Props) {
           animate={{
             opacity: 1,
             y: 0,
-            backgroundColor: open ? "rgba(255, 51, 102, 0.10)" : "rgba(63, 224, 160, 0.10)",
-            borderColor: open ? "rgba(255, 51, 102, 0.60)" : "rgba(63, 224, 160, 0.60)",
-            boxShadow: open
-              ? "0 0 12px rgb(255 51 102 / 0.5), 0 0 32px rgb(255 51 102 / 0.2)"
-              : "0 0 10px rgb(63 224 160 / 0.35), 0 0 24px rgb(63 224 160 / 0.12)",
+            backgroundColor: open ? "oklch(0.55 0.2 25 / 0.07)" : "oklch(0.52 0.14 152 / 0.08)",
+            borderColor: open ? "oklch(0.55 0.2 25 / 0.55)" : "oklch(0.52 0.14 152 / 0.55)",
           }}
           exit={{ opacity: 0, height: 0, marginTop: -12, transition: { duration: 0.35 } }}
           transition={

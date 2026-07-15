@@ -12,11 +12,11 @@ const LABEL_COLOR: Record<AgentMsg["agent"], string> = {
 };
 
 const ROLE_STYLES: Record<string, string> = {
-  proposal: "border-ink-soft/50 text-ink-soft",
+  proposal: "border-muted/50 text-muted",
   objection: "border-alert text-alert",
   revision: "border-agent-interest text-agent-interest",
   approval: "border-ok text-ok",
-  final: "border-cyan bg-cyan/15 text-cyan",
+  final: "border-primary-deep bg-primary/10 text-primary-deep",
 };
 
 // static: tam mətn (replay/bitmiş) · typing: hərf-hərf yazılır · queued: növbədə, mətn hələ boş
@@ -45,7 +45,7 @@ export default function StreamLine({ msg, mode, onTyped }: Props) {
     mode === "typing" ? (
       <>
         <span ref={bodyRef} />
-        <span className="stream-caret text-cyan">▍</span>
+        <span className="stream-caret text-primary">▍</span>
       </>
     ) : (
       <span>{mode === "static" ? msg.content : ""}</span>
@@ -57,7 +57,7 @@ export default function StreamLine({ msg, mode, onTyped }: Props) {
         {...entrance}
         className="px-1 py-1.5 font-mono text-[11px] leading-relaxed text-agent-system"
       >
-        <span className="mr-1.5 select-none text-cyan-dim">::</span>
+        <span className="mr-1.5 select-none text-accent">::</span>
         {body}
       </motion.div>
     );
@@ -71,7 +71,7 @@ export default function StreamLine({ msg, mode, onTyped }: Props) {
         <span className={`font-semibold uppercase tracking-wider ${LABEL_COLOR[msg.agent]}`}>
           [{t.agents[msg.agent]}]
         </span>
-        {msg.round > 0 && msg.round < 99 && <span className="text-ink-soft">R{msg.round}</span>}
+        {msg.round > 0 && msg.round < 99 && <span className="text-muted">R{msg.round}</span>}
         {badgeText && (
           <span
             className={`rounded-sm border px-1.5 py-px text-[9px] font-medium tracking-widest ${
@@ -83,8 +83,8 @@ export default function StreamLine({ msg, mode, onTyped }: Props) {
         )}
       </div>
       <p
-        className={`whitespace-pre-wrap pl-3 font-mono text-xs leading-relaxed text-ink/90 ${
-          msg.role === "objection" ? "border-l-2 border-alert/70" : "border-l border-line"
+        className={`whitespace-pre-wrap border-l pl-3 font-mono text-xs leading-relaxed text-ink/90 ${
+          msg.role === "objection" ? "border-alert/70" : "border-line"
         }`}
       >
         {body}

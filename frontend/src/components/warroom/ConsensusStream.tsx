@@ -66,15 +66,15 @@ export default function ConsensusStream({ messages, planning, failed }: Props) {
   };
 
   return (
-    <div className="hud-glass flex min-h-0 flex-1 flex-col">
-      <header className="flex items-center justify-between border-b border-line/70 px-4 py-2.5">
-        <span className="font-mono text-[11px] font-medium tracking-[0.2em] text-ink-soft">
+    <div className="panel flex min-h-0 flex-1 flex-col">
+      <header className="flex items-center justify-between border-b border-line px-4 py-2.5">
+        <span className="font-mono text-[11px] font-medium tracking-[0.2em] text-muted">
           {t.consensusStream}
         </span>
-        <span className="flex items-center gap-1.5 font-mono text-[11px] text-ink-soft">
+        <span className="flex items-center gap-1.5 font-mono text-[11px] text-muted">
           <span
             className={`h-2 w-2 rounded-full ${
-              planning ? "typing-dot bg-cyan" : failed ? "bg-alert" : "bg-ok"
+              planning ? "typing-dot bg-primary" : failed ? "bg-alert" : "bg-ok"
             }`}
           />
           {planning ? t.statusActive : t.statusIdle}
@@ -83,7 +83,7 @@ export default function ConsensusStream({ messages, planning, failed }: Props) {
 
       <div ref={scrollRef} onScroll={handleScroll} className="min-h-0 flex-1 overflow-y-auto px-3 py-3">
         {messages.length === 0 && !planning && (
-          <p className="py-8 text-center font-mono text-xs text-ink-soft">{t.chatEmpty}</p>
+          <p className="py-8 text-center font-mono text-xs text-muted">{t.chatEmpty}</p>
         )}
         {messages.map((m) => (
           <StreamLine
@@ -95,9 +95,9 @@ export default function ConsensusStream({ messages, planning, failed }: Props) {
         ))}
         {planning && activeId == null && (
           <div className="flex items-center gap-1.5 px-1 pt-2">
-            <span className="typing-dot h-1.5 w-1.5 rounded-full bg-cyan" />
-            <span className="typing-dot h-1.5 w-1.5 rounded-full bg-cyan" />
-            <span className="typing-dot h-1.5 w-1.5 rounded-full bg-cyan" />
+            <span className="typing-dot h-1.5 w-1.5 rounded-full bg-primary" />
+            <span className="typing-dot h-1.5 w-1.5 rounded-full bg-primary" />
+            <span className="typing-dot h-1.5 w-1.5 rounded-full bg-primary" />
           </div>
         )}
 
@@ -109,7 +109,7 @@ export default function ConsensusStream({ messages, planning, failed }: Props) {
             transition={{ type: "spring", stiffness: 260, damping: 20 }}
             className={`mt-3 rounded border py-2 text-center font-mono text-[10px] font-semibold tracking-[0.3em] ${
               failed
-                ? "border-alert/60 bg-alert/10 text-alert"
+                ? "border-alert/60 bg-alert/5 text-alert"
                 : "border-ok/50 bg-ok/10 text-ok"
             }`}
           >
