@@ -72,9 +72,12 @@ export default function PrintableItinerary({ trip, itinerary }: Props) {
         )}
       </p>
 
-      <p className="mt-6 border-t border-gray-400 pt-2 text-[10px] text-gray-600">
-        Rates by exchangerate-api.com · Weather by open-meteo.com · Map data © OpenStreetMap
-        contributors · Places via Geoapify · Images via Wikipedia
+      <p className="mt-6 flex items-baseline justify-between gap-4 border-t border-gray-400 pt-2 text-[10px] text-gray-600">
+        <span className="font-display text-xs font-bold text-black">Voyagent</span>
+        <span className="text-right">
+          Rates by exchangerate-api.com · Weather by open-meteo.com · Map data © OpenStreetMap
+          contributors · Places via Geoapify · Images via Wikipedia
+        </span>
       </p>
     </div>
   );

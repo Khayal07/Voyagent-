@@ -192,8 +192,11 @@ h1, h2, h3 {
   }
   .print-only {
     display: block;
+    padding: 14mm;
   }
+  /* margin: 0 — brauzerin öz header/footer-i (URL, tarix) margin zonasında çəkilir,
+     sıfırlayanda tam itir; kənar boşluğu .print-only padding-i verir */
   @page {
-    margin: 14mm;
+    margin: 0;
   }
 }
