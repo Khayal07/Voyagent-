@@ -3,10 +3,10 @@ import { useT } from "../../i18n";
 import type { AgentName, AgentStatus } from "../../hooks/useAgentStatuses";
 
 const AGENT_COLOR: Record<AgentName, string> = {
-  interest: "oklch(0.5 0.14 300)",
-  budget: "oklch(0.5 0.13 155)",
-  logistics: "oklch(0.52 0.12 60)",
-  planner: "oklch(0.45 0.09 250)",
+  interest: "oklch(0.75 0.11 300)",
+  budget: "oklch(0.76 0.11 155)",
+  logistics: "oklch(0.78 0.09 70)",
+  planner: "oklch(0.74 0.07 250)",
 };
 
 interface Props {
