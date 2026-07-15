@@ -63,7 +63,7 @@ export default function AgentNode({ agent, status }: Props) {
             initial={reduced ? false : { scale: 0 }}
             animate={{ scale: 1 }}
             transition={{ type: "spring", stiffness: 500, damping: 22 }}
-            className="absolute -bottom-0.5 -right-0.5 flex h-4 w-4 items-center justify-center rounded-full bg-ok text-[9px] font-bold text-white"
+            className="absolute -bottom-0.5 -right-0.5 flex h-4 w-4 items-center justify-center rounded-full bg-ok text-[9px] font-bold text-bg"
           >
             ✓
           </motion.span>

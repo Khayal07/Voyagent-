@@ -45,7 +45,7 @@ export default function MissionControl({
       onClick={() => setMobileTab(tab)}
       aria-pressed={mobileTab === tab}
       className={`flex-1 rounded-lg border px-3 py-2 font-mono text-xs uppercase tracking-wider transition-colors ${
-        mobileTab === tab ? "border-ink bg-ink text-white" : "border-line bg-bg text-muted"
+        mobileTab === tab ? "border-ink bg-ink text-bg" : "border-line bg-bg text-muted"
       }`}
     >
       {label}

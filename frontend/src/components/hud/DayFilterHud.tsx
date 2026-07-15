@@ -20,7 +20,7 @@ export default function DayFilterHud({ days, selectedDay, onSelectDay }: Props) 
         aria-selected={selectedDay === 0}
         onClick={() => onSelectDay(0)}
         className={`rounded-md px-2.5 py-1 font-mono text-[11px] transition-colors ${
-          selectedDay === 0 ? "bg-ink text-white" : "text-muted hover:text-ink"
+          selectedDay === 0 ? "bg-ink text-bg" : "text-muted hover:text-ink"
         }`}
       >
         {t.all}
@@ -35,7 +35,7 @@ export default function DayFilterHud({ days, selectedDay, onSelectDay }: Props) 
             aria-selected={active}
             onClick={() => onSelectDay(d.day)}
             className={`rounded-md px-2.5 py-1 font-mono text-[11px] transition-colors ${
-              active ? "text-white" : "text-muted hover:text-ink"
+              active ? "text-bg" : "text-muted hover:text-ink"
             }`}
             style={active ? { background: color } : undefined}
           >

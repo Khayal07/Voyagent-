@@ -94,7 +94,7 @@ export default function TripForm({ onSubmit, busy }: Props) {
                   key={key} type="button" onClick={() => toggleInterest(key)} aria-pressed={active}
                   className={`rounded-full border px-3 py-1.5 text-sm transition-colors ${
                     active
-                      ? "border-primary bg-primary text-white"
+                      ? "border-primary bg-primary text-bg"
                       : "border-line bg-bg text-ink hover:border-muted"
                   }`}
                 >
@@ -110,7 +110,7 @@ export default function TripForm({ onSubmit, busy }: Props) {
 
       <button
         type="submit" disabled={busy}
-        className="mt-6 w-full rounded-lg bg-primary px-4 py-3 text-base font-semibold text-white transition-colors hover:bg-primary-deep disabled:opacity-50"
+        className="mt-6 w-full rounded-lg bg-primary px-4 py-3 text-base font-semibold text-bg transition-colors hover:bg-primary-deep disabled:opacity-50"
       >
         {busy ? t.submitBusy : t.submit}
       </button>
