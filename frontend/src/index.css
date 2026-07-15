@@ -2,103 +2,112 @@
 @import "leaflet/dist/leaflet.css";
 
 @theme {
-  /* Səthlər */
-  --color-void: #0b0f19;
-  --color-panel: #10172a;
-  --color-panel-2: #161f36;
-  --color-line: #1e2a44;
-  --color-grid: #131c31;
+  /* Səthlər — "Atlas Bureau": təmiz ağ kağız + göyümtül neytrallar */
+  --color-bg: oklch(1 0 0);
+  --color-surface: oklch(0.965 0.006 260);
+  --color-surface-2: oklch(0.93 0.01 260);
+  --color-line: oklch(0.88 0.012 260);
 
-  /* Mətn (token adları köhnə class-larla uyumlu qalır) */
-  --color-ink: #e6edf7;
-  --color-ink-soft: #8b99b4;
+  /* Mətn */
+  --color-ink: oklch(0.22 0.03 260);
+  --color-muted: oklch(0.47 0.025 260);
 
-  /* Aksentlər */
-  --color-cyan: #00f2fe;
-  --color-cyan-dim: #0891b2;
-  --color-gold: #d4af37;
-  --color-gold-soft: #efd98b;
-  --color-alert: #ff3366;
-  --color-ok: #3fe0a0;
+  /* Brend — oxra (Committed) + mürəkkəb-göy */
+  --color-primary: oklch(0.55 0.12 75); /* dolu düymə/seçim, üstündə AĞ mətn */
+  --color-primary-bright: oklch(0.68 0.13 77); /* marker, gauge — qrafik elementlər */
+  --color-primary-deep: oklch(0.46 0.1 70); /* hover/pressed, ağ fonda oxra mətn */
+  --color-accent: oklch(0.38 0.08 260); /* marşrut xətti, linklər, thread */
 
-  /* Agent rəngləri — qaranlıq fon üçün açıqlaşdırılıb */
-  --color-agent-interest: #a78bfa;
-  --color-agent-budget: #4ade80;
-  --color-agent-logistics: #f5b841;
-  --color-agent-planner: #5eb3e4;
-  --color-agent-system: #7d8ca6;
+  /* Semantik */
+  --color-ok: oklch(0.52 0.14 152);
+  --color-alert: oklch(0.55 0.2 25);
 
-  --shadow-glow-cyan: 0 0 10px rgb(0 242 254 / 0.35), 0 0 28px rgb(0 242 254 / 0.15);
-  --shadow-glow-gold: 0 0 10px rgb(212 175 55 / 0.35), 0 0 28px rgb(212 175 55 / 0.15);
-  --shadow-glow-alert: 0 0 12px rgb(255 51 102 / 0.5), 0 0 32px rgb(255 51 102 / 0.2);
+  /* Agent kimlik rəngləri — ağ fonda mətn kimi oxunacaq tündlükdə */
+  --color-agent-interest: oklch(0.5 0.14 300);
+  --color-agent-budget: oklch(0.5 0.13 155);
+  --color-agent-logistics: oklch(0.52 0.12 60);
+  --color-agent-planner: oklch(0.45 0.09 250);
+  --color-agent-system: oklch(0.47 0.025 260);
 
-  --font-display: "Bricolage Grotesque", sans-serif;
+  --shadow-panel: 0 1px 2px oklch(0.22 0.03 260 / 0.06), 0 4px 12px oklch(0.22 0.03 260 / 0.05);
+  --shadow-panel-lg: 0 2px 4px oklch(0.22 0.03 260 / 0.07), 0 12px 32px oklch(0.22 0.03 260 / 0.09);
+
+  --font-display: "Bodoni Moda", Georgia, serif;
   --font-body: "Archivo", sans-serif;
   --font-mono: "IBM Plex Mono", monospace;
+
+  /* ── Köhnə token alias-ları (komponentlər yenilənənə qədər; mərhələ 5-də silinir) ── */
+  --color-void: oklch(1 0 0);
+  --color-panel: var(--color-surface);
+  --color-panel-2: var(--color-surface-2);
+  --color-grid: var(--color-surface-2);
+  --color-ink-soft: var(--color-muted);
+  --color-cyan: var(--color-primary);
+  --color-cyan-dim: var(--color-primary-deep);
+  --color-gold: var(--color-primary-bright);
+  --color-gold-soft: oklch(0.85 0.08 85);
+  --shadow-glow-cyan: var(--shadow-panel);
+  --shadow-glow-gold: var(--shadow-panel);
+  --shadow-glow-alert: var(--shadow-panel);
 }
 
 body {
-  @apply bg-void text-ink font-body antialiased;
-  background-image: radial-gradient(1200px 800px at 70% -10%, #131c31 0%, #0b0f19 55%);
-  background-attachment: fixed;
+  @apply bg-bg text-ink font-body antialiased;
 }
 
-/* Glassmorphic HUD səthi */
-.hud-glass {
-  background: rgb(16 23 42 / 0.62);
-  backdrop-filter: blur(8px) saturate(1.3);
-  -webkit-backdrop-filter: blur(8px) saturate(1.3);
-  border: 1px solid rgb(0 242 254 / 0.12);
+::selection {
+  background: oklch(0.68 0.13 77 / 0.3);
+}
+
+:focus-visible {
+  outline: 2px solid var(--color-accent);
+  outline-offset: 2px;
+}
+
+/* Solid panel — glassmorphism əvəzi */
+.panel {
+  background: var(--color-bg);
+  border: 1px solid var(--color-line);
   border-radius: 0.75rem;
+  box-shadow: var(--shadow-panel);
 }
-@supports not (backdrop-filter: blur(1px)) {
-  .hud-glass {
-    background: rgb(16 23 42 / 0.92);
-  }
+/* Xəritə üstündəki HUD panelləri: az-şəffaf ağ (panel arxası deyil, aralıqlar görünsün) */
+.hud-panel {
+  background: oklch(1 0 0 / 0.94);
+  border: 1px solid var(--color-line);
+  border-radius: 0.75rem;
+  box-shadow: var(--shadow-panel);
+}
+/* Müvəqqəti alias — köhnə class; mərhələ 5-də silinir */
+.hud-glass {
+  background: oklch(1 0 0 / 0.94);
+  border: 1px solid var(--color-line);
+  border-radius: 0.75rem;
+  box-shadow: var(--shadow-panel);
 }
 
-/* Dispatch log-un waypoint-lərini birləşdirən qırıq marşrut xətti */
+/* Dispatch log-un waypoint-lərini birləşdirən marşrut xətti */
 .route-thread {
-  border-left: 2px dashed var(--color-line);
+  border-left: 1px dashed oklch(0.38 0.08 260 / 0.45);
 }
 
 @keyframes pulse-dot {
   0%, 100% { opacity: 1; transform: scale(1); }
   50% { opacity: 0.4; transform: scale(0.75); }
 }
-
 .typing-dot {
   animation: pulse-dot 1.2s ease-in-out infinite;
 }
 .typing-dot:nth-child(2) { animation-delay: 0.2s; }
 .typing-dot:nth-child(3) { animation-delay: 0.4s; }
 
-/* Agent node radar süpürməsi */
-@keyframes radar-sweep {
-  to { transform: rotate(360deg); }
-}
-.radar-sweep {
-  background: conic-gradient(from 0deg, rgb(0 242 254 / 0.5), transparent 60deg);
-  animation: radar-sweep 2.4s linear infinite;
-}
-
-/* Geotag sonar dalğası */
-@keyframes sonar {
-  0% { transform: scale(0.3); opacity: 0.85; }
-  100% { transform: scale(2.6); opacity: 0; }
-}
-.sonar-ring {
-  animation: sonar 1.2s ease-out 2;
-}
-
 /* Marker düşmə effekti */
 @keyframes geo-drop {
-  0% { transform: translateY(-22px) scale(0.7); opacity: 0; }
-  60% { transform: translateY(2px) scale(1.05); opacity: 1; }
-  100% { transform: translateY(0) scale(1); }
+  0% { transform: translateY(-14px) scale(0.85); opacity: 0; }
+  100% { transform: translateY(0) scale(1); opacity: 1; }
 }
 .geo-drop {
-  animation: geo-drop 450ms cubic-bezier(0.34, 1.56, 0.64, 1);
+  animation: geo-drop 300ms cubic-bezier(0.22, 1, 0.36, 1);
 }
 
 /* Marşrut xəttində axan tirələr (hərəkət istiqaməti = nöqtə sırası) */
@@ -107,7 +116,7 @@ body {
 }
 .route-flow {
   stroke-dasharray: 10 12;
-  animation: march 1.2s linear infinite;
+  animation: march 1.6s linear infinite;
 }
 
 @keyframes caret-blink {
@@ -118,50 +127,44 @@ body {
   animation: caret-blink 1s steps(1) infinite;
 }
 
-/* Etiraz edən agent node-un halqası */
-@keyframes alert-flash {
-  0%, 100% { box-shadow: var(--shadow-glow-alert); border-color: var(--color-alert); }
-  50% { box-shadow: none; border-color: rgb(255 51 102 / 0.4); }
-}
-.alert-flash {
-  animation: alert-flash 0.9s ease-in-out infinite;
-}
-
-/* Leaflet qaranlıq tema override-ləri */
+/* Leaflet işıqlı tema override-ləri */
 .leaflet-container {
-  background: #0b0f19;
+  background: oklch(0.95 0.008 260);
+  font-family: var(--font-body);
 }
 .leaflet-popup-content-wrapper,
 .leaflet-popup-tip {
-  background: #10172a;
-  color: #e6edf7;
+  background: #fff;
+  color: oklch(0.22 0.03 260);
+  box-shadow: var(--shadow-panel-lg);
+}
+.leaflet-popup-content-wrapper {
+  border: 1px solid var(--color-line);
+  border-radius: 0.75rem;
 }
 .leaflet-bar a {
-  background: #10172a;
-  color: #e6edf7;
-  border-bottom-color: #1e2a44;
+  background: #fff;
+  color: oklch(0.22 0.03 260);
+  border-bottom-color: var(--color-line);
 }
 .leaflet-bar a:hover,
 .leaflet-bar a:focus {
-  background: #161f36;
-  color: #00f2fe;
+  background: var(--color-surface);
+  color: var(--color-primary-deep);
 }
 .leaflet-control-attribution {
-  background: rgb(11 15 25 / 0.7) !important;
-  color: rgb(230 237 247 / 0.5) !important;
+  background: oklch(1 0 0 / 0.8) !important;
+  color: var(--color-muted) !important;
 }
 .leaflet-control-attribution a {
-  color: rgb(0 242 254 / 0.6) !important;
+  color: var(--color-accent) !important;
 }
 
 @media (prefers-reduced-motion: reduce) {
   .typing-dot,
-  .radar-sweep,
-  .sonar-ring,
   .geo-drop,
   .route-flow,
-  .stream-caret,
-  .alert-flash {
+  .stream-caret {
     animation: none;
   }
 }

@@ -29,7 +29,7 @@ Text on saturated mid-luminance fills (primary buttons, agent pills) is white pe
 
 ## Typography
 
-- Display: **Fraunces** (opsz, 500–600) — H1 logo, city names, brand moments only. Never in labels, buttons or data.
+- Display: **Bodoni Moda** (opsz, 500–600) — H1 logo, city names, brand moments only; vintage travel-poster didone, large sizes only (≥20px). Never in labels, buttons or data.
 - UI/body: **Archivo** 400/500/600 — everything else.
 - Data: **IBM Plex Mono** 400/500 — dates, prices, coordinates, timetable rows, log timestamps.
 - Fixed rem scale, ratio ~1.2: 12 / 13 / 14 (base) / 17 / 20 / 24 / 34px equivalents. No fluid clamp headings in app UI.
