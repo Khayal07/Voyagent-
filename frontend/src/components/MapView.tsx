@@ -6,19 +6,21 @@ import type { LivePoint } from "../hooks/useLivePoints";
 import type { Itinerary } from "../types";
 import PoiThumb from "./PoiThumb";
 
-// Gün palitrası — işıqlı xəritədə oxunan tünd tonlar; HUD/ItineraryPanel ilə paylaşılır
-export const DAY_COLORS = ["#9a6a10", "#33568f", "#7b4bab", "#1f7a4d", "#b03052"];
+// Gün palitrası — tünd xəritədə oxunan açıq tonlar (üstündə midnight mətn); HUD/ItineraryPanel ilə paylaşılır
+export const DAY_COLORS = ["#d9a441", "#7fa3d8", "#b58fd9", "#6fbf94", "#e08099"];
+// Pin/çip üzərində rəqəm-mətn rəngi — matte midnight
+export const DAY_INK = "#141a28";
 
-const TILE_URL = "https://{s}.basemaps.cartocdn.com/rastertiles/voyager/{z}/{x}/{y}{r}.png";
+const TILE_URL = "https://{s}.basemaps.cartocdn.com/dark_all/{z}/{x}/{y}{r}.png";
 const TILE_ATTRIBUTION =
   '&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> &copy; <a href="https://carto.com/attributions">CARTO</a>';
 
 // isNew: marker ilk dəfə görünür — yumşaq düşmə (geo-drop)
-function numberIcon(color: string, n: number, isNew: boolean) {
+function numberIcon(color: string, n: number, isNew: boolean, textColor = DAY_INK) {
   const pin =
-    `<div class="${isNew ? "geo-drop" : ""}" style="background:${color};color:#fff;width:26px;height:26px;border-radius:50% 50% 50% 0;` +
+    `<div class="${isNew ? "geo-drop" : ""}" style="background:${color};color:${textColor};width:26px;height:26px;border-radius:50% 50% 50% 0;` +
     `transform:rotate(-45deg);display:flex;align-items:center;justify-content:center;` +
-    `border:2px solid #fff;box-shadow:0 1px 4px rgb(15 23 42 / .35)">` +
+    `border:2px solid ${DAY_INK};box-shadow:0 1px 4px rgb(0 0 0 / .5)">` +
     `<span style="transform:rotate(45deg);font:600 12px 'IBM Plex Mono',monospace">${n}</span></div>`;
   return L.divIcon({
     className: "",
@@ -28,11 +30,11 @@ function numberIcon(color: string, n: number, isNew: boolean) {
   });
 }
 
-// Danışıq zamanı düşən aralıq nöqtələr — oxra, nömrəsiz
+// Danışıq zamanı düşən aralıq nöqtələr — şampan qızılı, nömrəsiz
 function liveIcon(isNew: boolean) {
   const dot =
-    `<div class="${isNew ? "geo-drop" : ""}" style="width:12px;height:12px;border-radius:50%;background:#9a6a10;` +
-    `border:2px solid #fff;box-shadow:0 1px 3px rgb(15 23 42 / .35)"></div>`;
+    `<div class="${isNew ? "geo-drop" : ""}" style="width:12px;height:12px;border-radius:50%;background:#e6c594;` +
+    `border:2px solid ${DAY_INK};box-shadow:0 1px 3px rgb(0 0 0 / .5)"></div>`;
   return L.divIcon({
     className: "",
     html: `<div style="position:relative">${dot}</div>`,
@@ -164,7 +166,12 @@ export default function MapView({
                   <Marker
                     key={`${d.day}-${i.name}`}
                     position={[i.lat!, i.lon!]}
-                    icon={numberIcon(dimmed ? "#b3bac7" : color, idx + 1, newNames.has(i.name))}
+                    icon={numberIcon(
+                      dimmed ? "#4a5266" : color,
+                      idx + 1,
+                      newNames.has(i.name),
+                      dimmed ? "#c6cbd8" : DAY_INK
+                    )}
                   >
                     <Tooltip direction="top" offset={[0, -26]} opacity={0.95}>
                       <span style={{ font: "500 12px Archivo, sans-serif" }}>{i.name}</span>
