@@ -119,7 +119,7 @@ export default function App() {
           onClick={() => setLang(l)}
           aria-pressed={lang === l}
           className={`px-2.5 py-1.5 transition-colors ${
-            lang === l ? "bg-ink text-bg" : "text-muted hover:text-ink"
+            lang === l ? "bg-ink text-white" : "text-muted hover:text-ink"
           }`}
         >
           {l.toUpperCase()}

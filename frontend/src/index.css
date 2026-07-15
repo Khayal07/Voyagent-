@@ -2,35 +2,35 @@
 @import "leaflet/dist/leaflet.css";
 
 @theme {
-  /* Səthlər — "Midnight & Sand": matte gecə-göyü + isti ivory */
-  --color-bg: oklch(0.18 0.025 262);
-  --color-surface: oklch(0.225 0.028 262);
-  --color-surface-2: oklch(0.27 0.03 262);
-  --color-line: oklch(0.33 0.025 262);
+  /* Səthlər — "Atlas Bureau": təmiz ağ kağız + göyümtül neytrallar */
+  --color-bg: oklch(1 0 0);
+  --color-surface: oklch(0.965 0.006 260);
+  --color-surface-2: oklch(0.93 0.01 260);
+  --color-line: oklch(0.88 0.012 260);
 
   /* Mətn */
-  --color-ink: oklch(0.955 0.008 85);
-  --color-muted: oklch(0.72 0.015 262);
+  --color-ink: oklch(0.22 0.03 260);
+  --color-muted: oklch(0.47 0.025 260);
 
-  /* Brend — şampan qızılı (qənaətlə) + açıq mürəkkəb-göy */
-  --color-primary: oklch(0.85 0.08 85); /* dolu düymə/seçim, üstündə MIDNIGHT mətn */
-  --color-primary-bright: oklch(0.87 0.09 87); /* marker, gauge — qrafik elementlər */
-  --color-primary-deep: oklch(0.78 0.09 82); /* hover/pressed */
-  --color-accent: oklch(0.72 0.07 255); /* marşrut xətti, linklər, thread */
+  /* Brend — oxra (Committed) + mürəkkəb-göy */
+  --color-primary: oklch(0.55 0.12 75); /* dolu düymə/seçim, üstündə AĞ mətn */
+  --color-primary-bright: oklch(0.68 0.13 77); /* marker, gauge — qrafik elementlər */
+  --color-primary-deep: oklch(0.46 0.1 70); /* hover/pressed, ağ fonda oxra mətn */
+  --color-accent: oklch(0.38 0.08 260); /* marşrut xətti, linklər, thread */
 
   /* Semantik */
-  --color-ok: oklch(0.75 0.12 155);
-  --color-alert: oklch(0.72 0.16 25);
+  --color-ok: oklch(0.52 0.14 152);
+  --color-alert: oklch(0.55 0.2 25);
 
-  /* Agent kimlik rəngləri — midnight fonda mətn kimi oxunacaq açıqlıqda */
-  --color-agent-interest: oklch(0.75 0.11 300);
-  --color-agent-budget: oklch(0.76 0.11 155);
-  --color-agent-logistics: oklch(0.78 0.09 70);
-  --color-agent-planner: oklch(0.74 0.07 250);
-  --color-agent-system: oklch(0.72 0.015 262);
+  /* Agent kimlik rəngləri — ağ fonda mətn kimi oxunacaq tündlükdə */
+  --color-agent-interest: oklch(0.5 0.14 300);
+  --color-agent-budget: oklch(0.5 0.13 155);
+  --color-agent-logistics: oklch(0.52 0.12 60);
+  --color-agent-planner: oklch(0.45 0.09 250);
+  --color-agent-system: oklch(0.47 0.025 260);
 
-  --shadow-panel: 0 1px 2px oklch(0 0 0 / 0.35), 0 4px 16px oklch(0 0 0 / 0.28);
-  --shadow-panel-lg: 0 2px 4px oklch(0 0 0 / 0.4), 0 16px 40px oklch(0 0 0 / 0.35);
+  --shadow-panel: 0 1px 2px oklch(0.22 0.03 260 / 0.06), 0 4px 12px oklch(0.22 0.03 260 / 0.05);
+  --shadow-panel-lg: 0 2px 4px oklch(0.22 0.03 260 / 0.07), 0 12px 32px oklch(0.22 0.03 260 / 0.09);
 
   --font-display: "Bodoni Moda", Georgia, serif;
   --font-body: "Archivo", sans-serif;
@@ -43,32 +43,31 @@ body {
 }
 
 ::selection {
-  background: oklch(0.85 0.08 85 / 0.3);
-  color: oklch(0.955 0.008 85);
+  background: oklch(0.68 0.13 77 / 0.3);
 }
 
 :focus-visible {
-  outline: 2px solid var(--color-primary);
+  outline: 2px solid var(--color-accent);
   outline-offset: 2px;
 }
 
-/* Solid panel — glassmorphism yox */
+/* Solid panel — glassmorphism əvəzi */
 .panel {
-  background: var(--color-surface);
+  background: var(--color-bg);
   border: 1px solid var(--color-line);
   border-radius: 0.75rem;
   box-shadow: var(--shadow-panel);
 }
-/* Xəritə üstündəki HUD panelləri: az-şəffaf midnight (aralıqlardan xəritə görünsün) */
+/* Xəritə üstündəki HUD panelləri: az-şəffaf ağ (panel arxası deyil, aralıqlar görünsün) */
 .hud-panel {
-  background: oklch(0.18 0.025 262 / 0.92);
+  background: oklch(1 0 0 / 0.94);
   border: 1px solid var(--color-line);
   border-radius: 0.75rem;
   box-shadow: var(--shadow-panel);
 }
 /* Dispatch log-un waypoint-lərini birləşdirən marşrut xətti */
 .route-thread {
-  border-left: 1px dashed oklch(0.72 0.07 255 / 0.45);
+  border-left: 1px dashed oklch(0.38 0.08 260 / 0.45);
 }
 
 @keyframes pulse-dot {
@@ -107,36 +106,33 @@ body {
   animation: caret-blink 1s steps(1) infinite;
 }
 
-/* Leaflet qaranlıq tema override-ləri */
+/* Leaflet işıqlı tema override-ləri */
 .leaflet-container {
-  background: oklch(0.16 0.02 262);
+  background: oklch(0.95 0.008 260);
   font-family: var(--font-body);
 }
 .leaflet-popup-content-wrapper,
 .leaflet-popup-tip {
-  background: var(--color-surface);
-  color: var(--color-ink);
+  background: #fff;
+  color: oklch(0.22 0.03 260);
   box-shadow: var(--shadow-panel-lg);
 }
 .leaflet-popup-content-wrapper {
   border: 1px solid var(--color-line);
   border-radius: 0.75rem;
 }
-.leaflet-popup-close-button {
-  color: var(--color-muted) !important;
-}
 .leaflet-bar a {
-  background: var(--color-surface);
-  color: var(--color-ink);
+  background: #fff;
+  color: oklch(0.22 0.03 260);
   border-bottom-color: var(--color-line);
 }
 .leaflet-bar a:hover,
 .leaflet-bar a:focus {
-  background: var(--color-surface-2);
-  color: var(--color-primary);
+  background: var(--color-surface);
+  color: var(--color-primary-deep);
 }
 .leaflet-control-attribution {
-  background: oklch(0.18 0.025 262 / 0.8) !important;
+  background: oklch(1 0 0 / 0.8) !important;
   color: var(--color-muted) !important;
 }
 .leaflet-control-attribution a {

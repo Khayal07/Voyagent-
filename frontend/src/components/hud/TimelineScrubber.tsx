@@ -135,7 +135,7 @@ export default function TimelineScrubber({ stops, onScrub, onSettle, onEngage, t
           onDragEnd={handleDragEnd}
           style={{ x, width: HANDLE, height: HANDLE }}
           whileDrag={{ scale: 1.15 }}
-          className="absolute top-1/2 -translate-y-1/2 cursor-grab rounded-full border-2 border-primary bg-ink shadow-md active:cursor-grabbing"
+          className="absolute top-1/2 -translate-y-1/2 cursor-grab rounded-full border-2 border-primary bg-white shadow-md active:cursor-grabbing"
           role="slider"
           aria-label={t.scrubHint}
           aria-valuemin={1}

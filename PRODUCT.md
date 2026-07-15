@@ -10,7 +10,7 @@ web
 
 ## Users
 
-Two audiences share every screen. The primary one is a traveler planning a city trip: they enter a city, dates, budget and interests, then watch four AI agents negotiate an itinerary in real time and refine it afterwards (drag-and-drop, day filtering, print). The secondary one is the Div Academy capstone jury watching a live demo on a projector in a lit room — first impressions and legibility at distance matter as much as day-to-day usability; the dark theme must therefore keep high-contrast ivory-on-midnight text, never dim gray-on-gray.
+Two audiences share every screen. The primary one is a traveler planning a city trip: they enter a city, dates, budget and interests, then watch four AI agents negotiate an itinerary in real time and refine it afterwards (drag-and-drop, day filtering, print). The secondary one is the Div Academy capstone jury watching a live demo on a projector in a lit room — first impressions and legibility at distance matter as much as day-to-day usability.
 
 ## Product Purpose
 
@@ -26,7 +26,7 @@ Precise, warm, confident. The voice of a well-run travel bureau: it states facts
 
 ## Anti-references
 
-- Neon "terminal / mission-control" dark dashboards (glow, radar sweeps, glassmorphism) — reads as AI-generated sci-fi. The current matte editorial dark theme ("Midnight & Sand") is deliberately the opposite: matte surfaces, warm ivory type, no glow.
+- Neon "terminal / mission-control" dark dashboards (glow, radar sweeps, glassmorphism) — the previous theme; reads as AI-generated sci-fi.
 - Generic wanderlust travel sites (full-bleed beach photography, coral-and-teal, "Explore the world" heroes).
 - SaaS-cream landing templates (beige backgrounds, gradient text, icon-card grids).
 
@@ -35,7 +35,7 @@ Precise, warm, confident. The voice of a well-run travel bureau: it states facts
 - The itinerary is the hero; agents are the supporting cast. Every screen should surface the plan first and the machinery second.
 - Data reads like a timetable: dates, prices and coordinates are set in mono, aligned, and never decorated.
 - Motion conveys state (agent thinking, marker landing, route drawing) and nothing else.
-- Familiar controls, distinctive identity: standard form/button vocabulary, character carried by type and the midnight/ivory/champagne-gold palette.
+- Familiar controls, distinctive identity: standard form/button vocabulary, character carried by type and the ochre/ink palette.
 
 ## Accessibility & Inclusion
 

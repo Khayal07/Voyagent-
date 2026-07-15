@@ -58,7 +58,7 @@ export default function AuthForm({ onAuthed }: Props) {
 
         <button
           type="submit" disabled={busy}
-          className="mt-6 w-full rounded-lg bg-primary px-4 py-3 text-base font-semibold text-bg transition-colors hover:bg-primary-deep disabled:opacity-50"
+          className="mt-6 w-full rounded-lg bg-primary px-4 py-3 text-base font-semibold text-white transition-colors hover:bg-primary-deep disabled:opacity-50"
         >
           {mode === "login" ? t.login : t.registerAction}
         </button>

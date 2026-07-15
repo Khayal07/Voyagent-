@@ -3,10 +3,10 @@ import { useT } from "../../i18n";
 import type { AgentName, AgentStatus } from "../../hooks/useAgentStatuses";
 
 const AGENT_COLOR: Record<AgentName, string> = {
-  interest: "oklch(0.75 0.11 300)",
-  budget: "oklch(0.76 0.11 155)",
-  logistics: "oklch(0.78 0.09 70)",
-  planner: "oklch(0.74 0.07 250)",
+  interest: "oklch(0.5 0.14 300)",
+  budget: "oklch(0.5 0.13 155)",
+  logistics: "oklch(0.52 0.12 60)",
+  planner: "oklch(0.45 0.09 250)",
 };
 
 interface Props {
@@ -63,7 +63,7 @@ export default function AgentNode({ agent, status }: Props) {
             initial={reduced ? false : { scale: 0 }}
             animate={{ scale: 1 }}
             transition={{ type: "spring", stiffness: 500, damping: 22 }}
-            className="absolute -bottom-0.5 -right-0.5 flex h-4 w-4 items-center justify-center rounded-full bg-ok text-[9px] font-bold text-bg"
+            className="absolute -bottom-0.5 -right-0.5 flex h-4 w-4 items-center justify-center rounded-full bg-ok text-[9px] font-bold text-white"
           >
             ✓
           </motion.span>

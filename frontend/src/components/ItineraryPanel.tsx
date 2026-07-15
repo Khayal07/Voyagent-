@@ -220,7 +220,7 @@ export default function ItineraryPanel({
           aria-selected={selectedDay === 0}
           onClick={() => onSelectDay(0)}
           className={`rounded-md px-3 py-1 font-mono text-xs transition-colors ${
-            selectedDay === 0 ? "bg-ink text-bg" : "text-muted hover:text-ink"
+            selectedDay === 0 ? "bg-ink text-white" : "text-muted hover:text-ink"
           }`}
         >
           {t.all}
@@ -232,7 +232,7 @@ export default function ItineraryPanel({
             aria-selected={selectedDay === d.day}
             onClick={() => onSelectDay(d.day)}
             className={`rounded-md px-3 py-1 font-mono text-xs transition-colors ${
-              selectedDay === d.day ? "text-bg" : "text-muted hover:text-ink"
+              selectedDay === d.day ? "text-white" : "text-muted hover:text-ink"
             }`}
             style={
               selectedDay === d.day

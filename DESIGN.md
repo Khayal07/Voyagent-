@@ -2,33 +2,33 @@
 
 Visual system for Voyagent's frontend (Vite 6 + React 19 + Tailwind v4, tokens live in `frontend/src/index.css` `@theme`; there is no tailwind.config). Animation via the `motion` package (`motion/react`) and CSS keyframes.
 
-## Direction — "Midnight & Sand"
+## Direction — "Atlas Bureau"
 
-A premium travel bureau after dark: matte midnight-blue paper, warm ivory type, a champagne-gold accent used sparingly, precise mono timetables. Dark theme — matte and editorial, explicitly **not** the neon mission-control look (no glow, no glassmorphism, no radar sweeps). Color strategy: **Restrained** — near-monochrome midnight surfaces carry the frame; champagne gold marks primary actions, selection and key graphics; a lightened ink-blue is the secondary role (route lines, links, stream thread).
+Mid-century airline route map: white paper, ochre sun, ink-blue routes, precise mono timetables. Light theme — chosen for projector demos and itinerary legibility. Color strategy: **Committed** — ochre carries identity (markers, gauge, selection, primary actions); ink-blue is the secondary role (route lines, links, stream thread).
 
 ## Palette (OKLCH only)
 
 | Token | Value | Role |
 |---|---|---|
-| `--color-bg` | `oklch(0.18 0.025 262)` | body background — matte midnight, never pitch black |
-| `--color-surface` | `oklch(0.225 0.028 262)` | panels, cards, sidebars |
-| `--color-surface-2` | `oklch(0.27 0.03 262)` | nested/hover surfaces |
-| `--color-line` | `oklch(0.33 0.025 262)` | 1px borders — deliberately low-contrast |
-| `--color-ink` | `oklch(0.955 0.008 85)` | primary text — warm ivory, not #fff (≥7:1 on bg) |
-| `--color-muted` | `oklch(0.72 0.015 262)` | secondary text (≥4.5:1 on bg) |
-| `--color-primary` | `oklch(0.85 0.08 85)` | champagne gold — primary buttons and selection, **midnight text on top** (`text-bg`) |
-| `--color-primary-bright` | `oklch(0.87 0.09 87)` | gold for graphics: markers, gauge (3:1 floor) |
-| `--color-primary-deep` | `oklch(0.78 0.09 82)` | gold pressed/hover |
-| `--color-accent` | `oklch(0.72 0.07 255)` | lightened ink-blue — route lines, links, stream thread |
-| `--color-ok` | `oklch(0.75 0.12 155)` | success / approved |
-| `--color-alert` | `oklch(0.72 0.16 25)` | error / budget conflict / objection |
+| `--color-bg` | `oklch(1 0 0)` | body background — pure white, never tinted |
+| `--color-surface` | `oklch(0.965 0.006 260)` | panels, cards, sidebars |
+| `--color-surface-2` | `oklch(0.93 0.01 260)` | nested/hover surfaces |
+| `--color-line` | `oklch(0.88 0.012 260)` | 1px borders |
+| `--color-ink` | `oklch(0.22 0.03 260)` | primary text (≥7:1 on bg) |
+| `--color-muted` | `oklch(0.47 0.025 260)` | secondary text (≥4.5:1 on bg) |
+| `--color-primary` | `oklch(0.55 0.12 75)` | ochre — primary buttons (white text), selection |
+| `--color-primary-bright` | `oklch(0.68 0.13 77)` | ochre for graphics: markers, gauge (3:1 floor) |
+| `--color-primary-deep` | `oklch(0.46 0.1 70)` | ochre pressed/hover, small ochre text on white |
+| `--color-accent` | `oklch(0.38 0.08 260)` | ink-blue — route lines, links, stream thread |
+| `--color-ok` | `oklch(0.52 0.14 152)` | success / approved |
+| `--color-alert` | `oklch(0.55 0.2 25)` | error / budget conflict / objection |
 
-Day route colors (`DAY_COLORS` in `MapView.tsx`, shared by HUD chips): `#d9a441`, `#7fa3d8`, `#b58fd9`, `#6fbf94`, `#e08099` — light enough to read on the dark map, dark `DAY_INK` (`#141a28`) text on top.
+Day route colors (`DAY_COLORS` in `MapView.tsx`, shared by HUD chips): `#9a6a10`, `#33568f`, `#7b4bab`, `#1f7a4d`, `#b03052` — dark enough for white text and legible on the light map.
 
-Agent identity colors (light enough for text on midnight, distinct hues):
-interest `oklch(0.75 0.11 300)` violet · budget `oklch(0.76 0.11 155)` green · logistics `oklch(0.78 0.09 70)` amber · planner `oklch(0.74 0.07 250)` blue · system `oklch(0.72 0.015 262)` (= muted).
+Agent identity colors (dark enough for text on white, distinct hues):
+interest `oklch(0.5 0.14 300)` violet · budget `oklch(0.5 0.13 155)` green · logistics `oklch(0.52 0.12 60)` amber-brown · planner `oklch(0.45 0.09 250)` blue · system `oklch(0.47 0.025 260)` (= muted).
 
-Text on light fills (gold buttons, day chips, active `bg-ink` chips) is midnight via `text-bg`; white text is never used on this theme.
+Text on saturated mid-luminance fills (primary buttons, agent pills) is white per Helmholtz-Kohlrausch; dark text only on pale (`L > 0.85`) or neutral fills.
 
 ## Typography
 
@@ -39,7 +39,7 @@ Text on light fills (gold buttons, day chips, active `bg-ink` chips) is midnight
 
 ## Surfaces & depth
 
-Solid panels: `bg-surface` + 1px `line` border + soft diffused black shadow (`0 1px 2px oklch(0 0 0 / 0.35), 0 4px 16px / 0.28`). No glassmorphism, no glow shadows, no gradient backgrounds. Map HUD panels use near-opaque midnight (`oklch(0.18 0.025 262 / 0.92)`) so the map reads through the gaps, not through the panel.
+Solid panels: `bg-surface` + 1px `line` border + small shadow (`0 1px 2px oklch(0.22 0.03 260 / 0.06), 0 4px 12px / 0.04`). No glassmorphism, no glow shadows, no gradient backgrounds. Map HUD panels use near-opaque white (`oklch(1 0 0 / 0.94)`) so the map reads through the gaps, not through the panel.
 
 ## Motion
 
@@ -47,11 +47,11 @@ Solid panels: `bg-surface` + 1px `line` border + soft diffused black shadow (`0 
 
 ## Map
 
-CARTO `dark_all` tiles (dark, cartographic). Markers are `L.divIcon` HTML (react-leaflet v5 renders children only in popups): light day-color pin with midnight numeral and `DAY_INK` border, selected-day pins full-strength, other days faded (`#4a5266` fill, light numeral). Route polyline in the day's color. Leaflet chrome (popups, zoom bar, attribution) overridden to the dark palette in `index.css`.
+CARTO `voyager` tiles (light, cartographic). Markers are `L.divIcon` HTML (react-leaflet v5 renders children only in popups): ochre pin with white numeral, selected-day pins full-strength, other days faded. Route polyline in accent ink-blue. Leaflet chrome (popups, zoom bar, attribution) overridden to the light palette in `index.css`.
 
 ## Components
 
-Single control vocabulary everywhere: 8px-radius inputs and buttons, visible focus ring (`2px` gold outline, offset 2), complete hover/focus/active/disabled states. Primary action = gold filled with midnight text (`bg-primary text-bg`); secondary = `bg` with `line` border; destructive/objection = alert. Active chips/tabs = `bg-ink text-bg` (ivory fill, midnight text). Status pills: agent color dot + mono label. Empty states explain the interface; loading uses skeletons or the stream itself, not spinners over content.
+Single control vocabulary everywhere: 8px-radius inputs and buttons, visible focus ring (`2px` accent outline, offset 2), complete hover/focus/active/disabled states. Primary action = ochre filled with white text; secondary = white with `line` border; destructive/objection = alert. Status pills: agent color dot + mono label. Empty states explain the interface; loading uses skeletons or the stream itself, not spinners over content.
 
 ## Print
 

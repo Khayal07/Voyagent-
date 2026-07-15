@@ -26,9 +26,9 @@ export default function BudgetGauge({ alloc, currency }: Props) {
   const spentText = useTransform(spentSpring, (v) => String(Math.round(v)));
 
   const segments = [
-    { key: "lodging", value: alloc.lodging, color: "#7fa3d8", label: t.gauge.lodging },
-    { key: "food", value: alloc.food, color: "#d9a441", label: t.gauge.food },
-    { key: "fun", value: alloc.fun, color: "#6fbf94", label: t.gauge.fun },
+    { key: "lodging", value: alloc.lodging, color: "#33568f", label: t.gauge.lodging },
+    { key: "food", value: alloc.food, color: "#9a6a10", label: t.gauge.food },
+    { key: "fun", value: alloc.fun, color: "#1f7a4d", label: t.gauge.fun },
   ];
 
   // Fraksiyalar (cəmi 1-i keçməsin — aşımda proporsional sıxılır)
@@ -62,7 +62,7 @@ export default function BudgetGauge({ alloc, currency }: Props) {
             {/* Track (boş hissə = ehtiyat) */}
             <circle
               cx="50" cy="50" r="40" fill="none"
-              stroke={over ? "rgb(239 139 118 / 0.35)" : "#3a4258"}
+              stroke={over ? "rgb(197 58 46 / 0.35)" : "#e2e5ec"}
               strokeWidth="9" strokeLinecap="round"
               pathLength={1}
               strokeDasharray={`${ARC} ${1 - ARC}`}
@@ -89,14 +89,14 @@ export default function BudgetGauge({ alloc, currency }: Props) {
           <motion.text
             x="50" y="47" textAnchor="middle"
             style={{ font: "700 15px 'IBM Plex Mono', monospace" }}
-            fill={over ? "#ef8b76" : "#f6f3ea"}
+            fill={over ? "#c53a2e" : "#262c3b"}
           >
             {spentText}
           </motion.text>
           <text
             x="50" y="61" textAnchor="middle"
             style={{ font: "400 8.5px 'IBM Plex Mono', monospace" }}
-            fill="#a6abbc"
+            fill="#5c6478"
           >
             / {budget} {currency}
           </text>
@@ -113,7 +113,7 @@ export default function BudgetGauge({ alloc, currency }: Props) {
           <li className="flex items-center gap-1.5">
             <span
               className="h-1.5 w-1.5 shrink-0 rounded-full"
-              style={{ background: over ? "#ef8b76" : "#3a4258" }}
+              style={{ background: over ? "#c53a2e" : "#e2e5ec" }}
             />
             <span className={`truncate ${over ? "text-alert" : "text-muted"}`}>
               {over ? t.overBudget : t.gauge.reserve}
