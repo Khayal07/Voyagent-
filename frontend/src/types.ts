@@ -6,6 +6,9 @@ export interface TripInput {
   currency: string;
   travelers: number;
   interests: string[];
+  must_visit: string[];
+  avoid: string[];
+  pace: string;
   language: string;
 }
 

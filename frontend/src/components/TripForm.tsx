@@ -3,6 +3,15 @@ import { INTEREST_KEYS, useT } from "../i18n";
 import type { TripInput } from "../types";
 
 const MAX_DAYS = 5;
+const MAX_PLACES = 5;
+const PACES = ["relaxed", "normal", "intense"] as const;
+
+// Sətir-sətir yer siyahısı → təmizlənmiş massiv
+const parsePlaces = (text: string) =>
+  text
+    .split("\n")
+    .map((s) => s.trim())
+    .filter(Boolean);
 
 interface Props {
   onSubmit: (input: Omit<TripInput, "language">) => void;
@@ -18,6 +27,9 @@ export default function TripForm({ onSubmit, busy }: Props) {
   const [currency, setCurrency] = useState("USD");
   const [travelers, setTravelers] = useState(2);
   const [interests, setInterests] = useState<string[]>([]);
+  const [mustVisitText, setMustVisitText] = useState("");
+  const [avoidText, setAvoidText] = useState("");
+  const [pace, setPace] = useState<(typeof PACES)[number]>("normal");
   const [error, setError] = useState("");
 
   const toggleInterest = (i: string) =>
@@ -29,6 +41,10 @@ export default function TripForm({ onSubmit, busy }: Props) {
     const days = (new Date(endDate).getTime() - new Date(startDate).getTime()) / 86400000 + 1;
     if (isNaN(days) || days < 1) return setError(t.errDates);
     if (days > MAX_DAYS) return setError(t.errMaxDays.replace("{n}", String(MAX_DAYS)));
+    const mustVisit = parsePlaces(mustVisitText);
+    const avoid = parsePlaces(avoidText);
+    if (mustVisit.length > MAX_PLACES || avoid.length > MAX_PLACES)
+      return setError(t.errMaxPlaces.replace("{n}", String(MAX_PLACES)));
     onSubmit({
       city: city.trim(),
       start_date: startDate,
@@ -37,6 +53,9 @@ export default function TripForm({ onSubmit, busy }: Props) {
       currency,
       travelers,
       interests,
+      must_visit: mustVisit,
+      avoid,
+      pace,
     });
   };
 
@@ -103,6 +122,50 @@ export default function TripForm({ onSubmit, busy }: Props) {
               );
             })}
           </div>
+        </div>
+        <div className="sm:col-span-2">
+          <span className={label} id="pace-label">{t.pace}</span>
+          <div
+            className="inline-flex overflow-hidden rounded-lg border border-line font-mono text-xs"
+            role="group"
+            aria-labelledby="pace-label"
+          >
+            {PACES.map((p) => (
+              <button
+                key={p}
+                type="button"
+                onClick={() => setPace(p)}
+                aria-pressed={pace === p}
+                className={`px-3 py-1.5 transition-colors ${
+                  pace === p ? "bg-ink text-white" : "text-muted hover:text-ink"
+                }`}
+              >
+                {p === "relaxed" ? t.paceRelaxed : p === "normal" ? t.paceNormal : t.paceIntense}
+              </button>
+            ))}
+          </div>
+        </div>
+        <div className="sm:col-span-2">
+          <label className={label} htmlFor="must-visit">{t.mustVisit}</label>
+          <textarea
+            id="must-visit"
+            rows={2}
+            className={`${field} resize-y`}
+            placeholder={t.mustVisitHint}
+            value={mustVisitText}
+            onChange={(e) => setMustVisitText(e.target.value)}
+          />
+        </div>
+        <div className="sm:col-span-2">
+          <label className={label} htmlFor="avoid">{t.avoidPlaces}</label>
+          <textarea
+            id="avoid"
+            rows={2}
+            className={`${field} resize-y`}
+            placeholder={t.avoidHint}
+            value={avoidText}
+            onChange={(e) => setAvoidText(e.target.value)}
+          />
         </div>
       </div>
 
