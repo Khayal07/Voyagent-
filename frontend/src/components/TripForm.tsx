@@ -45,7 +45,7 @@ export default function TripForm({ onSubmit, busy }: Props) {
   const label = "mb-1 block font-mono text-[11px] tracking-wider text-muted uppercase";
 
   return (
-    <form onSubmit={handleSubmit} className="panel p-6">
+    <form onSubmit={handleSubmit} className="panel panel-lg p-6 sm:p-8">
       <h2 className="font-display text-2xl font-semibold tracking-tight">{t.formTitle}</h2>
       <p className="mb-6 mt-1 text-sm text-muted">{t.formSubtitle}</p>
 
@@ -92,10 +92,10 @@ export default function TripForm({ onSubmit, busy }: Props) {
               return (
                 <button
                   key={key} type="button" onClick={() => toggleInterest(key)} aria-pressed={active}
-                  className={`rounded-full border px-3 py-1.5 text-sm transition-colors ${
+                  className={`rounded-full border px-3 py-1.5 text-sm transition-all active:translate-y-px ${
                     active
-                      ? "border-primary bg-primary text-white"
-                      : "border-line bg-bg text-ink hover:border-muted"
+                      ? "border-primary bg-primary text-white shadow-panel"
+                      : "border-line bg-bg text-ink hover:-translate-y-px hover:border-muted hover:shadow-panel"
                   }`}
                 >
                   {t.interestLabels[key]}
@@ -110,7 +110,7 @@ export default function TripForm({ onSubmit, busy }: Props) {
 
       <button
         type="submit" disabled={busy}
-        className="mt-6 w-full rounded-lg bg-primary px-4 py-3 text-base font-semibold text-white transition-colors hover:bg-primary-deep disabled:opacity-50"
+        className="mt-6 w-full rounded-lg bg-primary px-4 py-3 text-base font-semibold text-white shadow-panel transition-all hover:bg-primary-deep active:translate-y-px disabled:opacity-50"
       >
         {busy ? t.submitBusy : t.submit}
       </button>

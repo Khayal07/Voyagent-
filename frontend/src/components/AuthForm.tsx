@@ -35,7 +35,7 @@ export default function AuthForm({ onAuthed }: Props) {
 
   return (
     <div className="mx-auto mt-10 w-full max-w-md">
-      <form onSubmit={handleSubmit} className="panel p-6">
+      <form onSubmit={handleSubmit} className="panel panel-lg p-6 sm:p-8">
         <h2 className="font-display text-2xl font-semibold tracking-tight">{t.authTitle}</h2>
         <p className="mb-6 mt-1 text-sm text-muted">{t.authSubtitle}</p>
 
@@ -58,7 +58,7 @@ export default function AuthForm({ onAuthed }: Props) {
 
         <button
           type="submit" disabled={busy}
-          className="mt-6 w-full rounded-lg bg-primary px-4 py-3 text-base font-semibold text-white transition-colors hover:bg-primary-deep disabled:opacity-50"
+          className="mt-6 w-full rounded-lg bg-primary px-4 py-3 text-base font-semibold text-white shadow-panel transition-all hover:bg-primary-deep active:translate-y-px disabled:opacity-50"
         >
           {mode === "login" ? t.login : t.registerAction}
         </button>

@@ -35,7 +35,7 @@ export default function MyTrips({ onOpen, onError }: Props) {
         <li key={trip.id}>
           <button
             onClick={() => onOpen(trip.id)}
-            className="flex w-full flex-wrap items-baseline gap-x-4 gap-y-1 rounded-xl border border-line bg-bg px-4 py-3 text-left transition-colors hover:border-muted hover:bg-surface"
+            className="flex w-full flex-wrap items-baseline gap-x-4 gap-y-1 rounded-xl border border-line bg-bg px-4 py-3 text-left transition-all hover:-translate-y-0.5 hover:border-muted hover:shadow-panel active:translate-y-0"
           >
             <span className="font-display text-xl font-semibold">{trip.city}</span>
             <span className="font-mono text-xs text-muted">
@@ -45,10 +45,14 @@ export default function MyTrips({ onOpen, onError }: Props) {
               {trip.budget} {trip.currency} · {trip.travelers} {t.people}
             </span>
             <span
-              className={`ml-auto font-mono text-[11px] uppercase tracking-wider ${
+              className={`ml-auto inline-flex items-center gap-1.5 font-mono text-[11px] uppercase tracking-wider ${
                 trip.status === "done" ? "text-ok" : "text-primary-deep"
               }`}
             >
+              <span
+                aria-hidden
+                className={`h-1.5 w-1.5 rounded-full ${trip.status === "done" ? "bg-ok" : "bg-primary-bright"}`}
+              />
               {trip.status}
             </span>
           </button>

@@ -132,7 +132,7 @@ export default function App() {
     <LangContext.Provider value={{ lang, setLang }}>
       {trip && itinerary && <PrintableItinerary trip={trip} itinerary={itinerary} />}
       <div className="app-screen mx-auto flex h-screen max-w-[1700px] flex-col px-4 py-5">
-        <header className="mb-5 flex items-end justify-between border-b border-line pb-4">
+        <header className="rule-double mb-6 flex items-end justify-between pb-4">
           <div>
             <h1 className="font-display text-3xl font-semibold tracking-tight">
               Voyagent<span className="text-primary">.</span>
@@ -153,14 +153,14 @@ export default function App() {
                       setView("myTrips");
                     }
                   }}
-                  className="rounded-lg border border-line px-3 py-1.5 text-sm text-ink transition-colors hover:bg-surface"
+                  className="rounded-lg border border-line px-3 py-1.5 text-sm text-ink transition-all hover:border-muted hover:bg-surface active:translate-y-px"
                 >
                   {view === "myTrips" ? t.backToPlanner : t.myTrips}
                 </button>
                 {trip && view === "planner" && (
                   <button
                     onClick={reset}
-                    className="rounded-lg border border-line px-3 py-1.5 text-sm text-ink transition-colors hover:bg-surface"
+                    className="rounded-lg border border-line px-3 py-1.5 text-sm text-ink transition-all hover:border-muted hover:bg-surface active:translate-y-px"
                   >
                     {t.newTrip}
                   </button>
