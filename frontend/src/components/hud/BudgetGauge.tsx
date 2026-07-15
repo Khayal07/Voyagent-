@@ -26,9 +26,9 @@ export default function BudgetGauge({ alloc, currency }: Props) {
   const spentText = useTransform(spentSpring, (v) => String(Math.round(v)));
 
   const segments = [
-    { key: "lodging", value: alloc.lodging, color: "#00f2fe", label: t.gauge.lodging },
-    { key: "food", value: alloc.food, color: "#d4af37", label: t.gauge.food },
-    { key: "fun", value: alloc.fun, color: "#4ade80", label: t.gauge.fun },
+    { key: "lodging", value: alloc.lodging, color: "#33568f", label: t.gauge.lodging },
+    { key: "food", value: alloc.food, color: "#9a6a10", label: t.gauge.food },
+    { key: "fun", value: alloc.fun, color: "#1f7a4d", label: t.gauge.fun },
   ];
 
   // Fraksiyalar (cəmi 1-i keçməsin — aşımda proporsional sıxılır)
@@ -47,8 +47,8 @@ export default function BudgetGauge({ alloc, currency }: Props) {
     : { type: "spring" as const, stiffness: 60, damping: 16 };
 
   return (
-    <div className="hud-glass w-44 px-3 py-2.5">
-      <div className="mb-1 font-mono text-[9px] font-medium tracking-[0.18em] text-ink-soft">
+    <div className="hud-panel w-44 px-3 py-2.5">
+      <div className="mb-1 font-mono text-[9px] font-medium tracking-[0.18em] text-muted">
         {t.budgetGauge}
       </div>
       <div className="flex items-center gap-2.5">
@@ -62,7 +62,7 @@ export default function BudgetGauge({ alloc, currency }: Props) {
             {/* Track (boş hissə = ehtiyat) */}
             <circle
               cx="50" cy="50" r="40" fill="none"
-              stroke={over ? "rgb(255 51 102 / 0.4)" : "#1e2a44"}
+              stroke={over ? "rgb(197 58 46 / 0.35)" : "#e2e5ec"}
               strokeWidth="9" strokeLinecap="round"
               pathLength={1}
               strokeDasharray={`${ARC} ${1 - ARC}`}
@@ -89,14 +89,14 @@ export default function BudgetGauge({ alloc, currency }: Props) {
           <motion.text
             x="50" y="47" textAnchor="middle"
             style={{ font: "700 15px 'IBM Plex Mono', monospace" }}
-            fill={over ? "#ff3366" : "#e6edf7"}
+            fill={over ? "#c53a2e" : "#262c3b"}
           >
             {spentText}
           </motion.text>
           <text
             x="50" y="61" textAnchor="middle"
             style={{ font: "400 8.5px 'IBM Plex Mono', monospace" }}
-            fill="#8b99b4"
+            fill="#5c6478"
           >
             / {budget} {currency}
           </text>
@@ -106,16 +106,16 @@ export default function BudgetGauge({ alloc, currency }: Props) {
           {segments.map((s) => (
             <li key={s.key} className="flex items-center gap-1.5">
               <span className="h-1.5 w-1.5 shrink-0 rounded-full" style={{ background: s.color }} />
-              <span className="truncate text-ink-soft">{s.label}</span>
+              <span className="truncate text-muted">{s.label}</span>
               <span className="ml-auto text-ink">{Math.round(s.value)}</span>
             </li>
           ))}
           <li className="flex items-center gap-1.5">
             <span
               className="h-1.5 w-1.5 shrink-0 rounded-full"
-              style={{ background: over ? "#ff3366" : "#1e2a44" }}
+              style={{ background: over ? "#c53a2e" : "#e2e5ec" }}
             />
-            <span className={`truncate ${over ? "text-alert" : "text-ink-soft"}`}>
+            <span className={`truncate ${over ? "text-alert" : "text-muted"}`}>
               {over ? t.overBudget : t.gauge.reserve}
             </span>
             <span className={`ml-auto ${over ? "text-alert" : "text-ink"}`}>

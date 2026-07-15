@@ -36,19 +36,6 @@
   --font-body: "Archivo", sans-serif;
   --font-mono: "IBM Plex Mono", monospace;
 
-  /* ── Köhnə token alias-ları (komponentlər yenilənənə qədər; mərhələ 5-də silinir) ── */
-  --color-void: oklch(1 0 0);
-  --color-panel: var(--color-surface);
-  --color-panel-2: var(--color-surface-2);
-  --color-grid: var(--color-surface-2);
-  --color-ink-soft: var(--color-muted);
-  --color-cyan: var(--color-primary);
-  --color-cyan-dim: var(--color-primary-deep);
-  --color-gold: var(--color-primary-bright);
-  --color-gold-soft: oklch(0.85 0.08 85);
-  --shadow-glow-cyan: var(--shadow-panel);
-  --shadow-glow-gold: var(--shadow-panel);
-  --shadow-glow-alert: var(--shadow-panel);
 }
 
 body {
@@ -78,14 +65,6 @@ body {
   border-radius: 0.75rem;
   box-shadow: var(--shadow-panel);
 }
-/* Müvəqqəti alias — köhnə class; mərhələ 5-də silinir */
-.hud-glass {
-  background: oklch(1 0 0 / 0.94);
-  border: 1px solid var(--color-line);
-  border-radius: 0.75rem;
-  box-shadow: var(--shadow-panel);
-}
-
 /* Dispatch log-un waypoint-lərini birləşdirən marşrut xətti */
 .route-thread {
   border-left: 1px dashed oklch(0.38 0.08 260 / 0.45);

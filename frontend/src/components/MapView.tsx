@@ -6,44 +6,36 @@ import type { LivePoint } from "../hooks/useLivePoints";
 import type { Itinerary } from "../types";
 import PoiThumb from "./PoiThumb";
 
-// Neon palitra — HUD/ItineraryPanel ilə paylaşılır
-export const DAY_COLORS = ["#00f2fe", "#d4af37", "#a78bfa", "#4ade80", "#fb7185"];
+// Gün palitrası — işıqlı xəritədə oxunan tünd tonlar; HUD/ItineraryPanel ilə paylaşılır
+export const DAY_COLORS = ["#9a6a10", "#33568f", "#7b4bab", "#1f7a4d", "#b03052"];
 
-const TILE_URL = "https://{s}.basemaps.cartocdn.com/dark_all/{z}/{x}/{y}{r}.png";
+const TILE_URL = "https://{s}.basemaps.cartocdn.com/rastertiles/voyager/{z}/{x}/{y}{r}.png";
 const TILE_ATTRIBUTION =
   '&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> &copy; <a href="https://carto.com/attributions">CARTO</a>';
 
-// isNew: marker ilk dəfə görünür — yuxarıdan düşür + sonar dalğası yayılır
+// isNew: marker ilk dəfə görünür — yumşaq düşmə (geo-drop)
 function numberIcon(color: string, n: number, isNew: boolean) {
   const pin =
-    `<div class="${isNew ? "geo-drop" : ""}" style="background:#0b0f19;color:${color};width:26px;height:26px;border-radius:50% 50% 50% 0;` +
+    `<div class="${isNew ? "geo-drop" : ""}" style="background:${color};color:#fff;width:26px;height:26px;border-radius:50% 50% 50% 0;` +
     `transform:rotate(-45deg);display:flex;align-items:center;justify-content:center;` +
-    `border:2px solid ${color};box-shadow:0 0 8px ${color}66">` +
+    `border:2px solid #fff;box-shadow:0 1px 4px rgb(15 23 42 / .35)">` +
     `<span style="transform:rotate(45deg);font:600 12px 'IBM Plex Mono',monospace">${n}</span></div>`;
-  const ring = isNew
-    ? `<span class="sonar-ring" style="position:absolute;left:-7px;top:6px;width:40px;height:40px;` +
-      `border-radius:50%;border:2px solid ${color};pointer-events:none"></span>`
-    : "";
   return L.divIcon({
     className: "",
-    html: `<div style="position:relative">${pin}${ring}</div>`,
+    html: `<div style="position:relative">${pin}</div>`,
     iconSize: [26, 26],
     iconAnchor: [13, 26],
   });
 }
 
-// Danışıq zamanı düşən aralıq nöqtələr — qızılı, nömrəsiz
+// Danışıq zamanı düşən aralıq nöqtələr — oxra, nömrəsiz
 function liveIcon(isNew: boolean) {
   const dot =
-    `<div class="${isNew ? "geo-drop" : ""}" style="width:12px;height:12px;border-radius:50%;background:#0b0f19;` +
-    `border:2px solid #d4af37;box-shadow:0 0 8px rgb(212 175 55 / .6)"></div>`;
-  const ring = isNew
-    ? `<span class="sonar-ring" style="position:absolute;left:-10px;top:-10px;width:32px;height:32px;` +
-      `border-radius:50%;border:2px solid #d4af37;pointer-events:none"></span>`
-    : "";
+    `<div class="${isNew ? "geo-drop" : ""}" style="width:12px;height:12px;border-radius:50%;background:#9a6a10;` +
+    `border:2px solid #fff;box-shadow:0 1px 3px rgb(15 23 42 / .35)"></div>`;
   return L.divIcon({
     className: "",
-    html: `<div style="position:relative">${dot}${ring}</div>`,
+    html: `<div style="position:relative">${dot}</div>`,
     iconSize: [12, 12],
     iconAnchor: [6, 6],
   });
@@ -172,7 +164,7 @@ export default function MapView({
                   <Marker
                     key={`${d.day}-${i.name}`}
                     position={[i.lat!, i.lon!]}
-                    icon={numberIcon(dimmed ? "#3a4a6b" : color, idx + 1, newNames.has(i.name))}
+                    icon={numberIcon(dimmed ? "#b3bac7" : color, idx + 1, newNames.has(i.name))}
                   >
                     <Tooltip direction="top" offset={[0, -26]} opacity={0.95}>
                       <span style={{ font: "500 12px Archivo, sans-serif" }}>{i.name}</span>

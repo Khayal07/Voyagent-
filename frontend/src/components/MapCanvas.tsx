@@ -24,7 +24,7 @@ interface Props {
   visible?: boolean; // mobil tab görünəndə Leaflet ölçünü yeniləməlidir
 }
 
-// Tam-ekran xəritə + üstündə glassmorphic HUD qatı
+// Tam-ekran xəritə + üstündə HUD qatı (solid panellər)
 export default function MapCanvas({
   trip,
   phase,
@@ -82,8 +82,8 @@ export default function MapCanvas({
 
   if (!cityCenter) {
     return (
-      <div className="flex h-full items-center justify-center bg-panel/40 font-mono text-sm text-ink-soft">
-        <span className="typing-dot mr-2 h-2 w-2 rounded-full bg-cyan" />
+      <div className="flex h-full items-center justify-center bg-surface font-mono text-sm text-muted">
+        <span className="typing-dot mr-2 h-2 w-2 rounded-full bg-primary" />
         {phase === "streaming" ? t.signalAcquiring : t.noRoute}
       </div>
     );

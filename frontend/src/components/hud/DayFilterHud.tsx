@@ -14,13 +14,13 @@ export default function DayFilterHud({ days, selectedDay, onSelectDay }: Props) 
   if (days.length === 0) return null;
 
   return (
-    <div className="hud-glass flex flex-wrap gap-1 px-2 py-1.5" role="tablist">
+    <div className="hud-panel flex flex-wrap gap-1 px-2 py-1.5" role="tablist">
       <button
         role="tab"
         aria-selected={selectedDay === 0}
         onClick={() => onSelectDay(0)}
-        className={`rounded px-2.5 py-1 font-mono text-[11px] transition-colors ${
-          selectedDay === 0 ? "bg-cyan text-void" : "text-ink-soft hover:text-ink"
+        className={`rounded-md px-2.5 py-1 font-mono text-[11px] transition-colors ${
+          selectedDay === 0 ? "bg-ink text-white" : "text-muted hover:text-ink"
         }`}
       >
         {t.all}
@@ -34,8 +34,8 @@ export default function DayFilterHud({ days, selectedDay, onSelectDay }: Props) 
             role="tab"
             aria-selected={active}
             onClick={() => onSelectDay(d.day)}
-            className={`rounded px-2.5 py-1 font-mono text-[11px] transition-colors ${
-              active ? "text-void" : "text-ink-soft hover:text-ink"
+            className={`rounded-md px-2.5 py-1 font-mono text-[11px] transition-colors ${
+              active ? "text-white" : "text-muted hover:text-ink"
             }`}
             style={active ? { background: color } : undefined}
           >

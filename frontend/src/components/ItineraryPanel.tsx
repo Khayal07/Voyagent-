@@ -1,4 +1,4 @@
-import {
+﻿import {
   DndContext,
   KeyboardSensor,
   PointerSensor,
@@ -66,16 +66,16 @@ function SortableItem({
       {...attributes}
       {...listeners}
     >
-      <span className="w-5 text-right font-mono text-xs text-ink-soft">{idx + 1}.</span>
-      <span className="w-12 font-mono text-xs text-ink-soft">{item.start_time}</span>
+      <span className="w-5 text-right font-mono text-xs text-muted">{idx + 1}.</span>
+      <span className="w-12 font-mono text-xs text-muted">{item.start_time}</span>
       <PoiThumb wiki={item.wiki} name={item.name} />
       <span className="min-w-0 flex-1">
         {item.name}{" "}
-        <span className="whitespace-nowrap rounded-sm bg-panel-2 px-1.5 py-px font-mono text-[10px] text-ink-soft">
+        <span className="whitespace-nowrap rounded-sm bg-surface-2 px-1.5 py-px font-mono text-[10px] text-muted">
           {t.categories[item.category as keyof typeof t.categories] ?? item.category}
         </span>
       </span>
-      <span className="whitespace-nowrap font-mono text-xs text-ink-soft">
+      <span className="whitespace-nowrap font-mono text-xs text-muted">
         {item.est_cost} {currency}
       </span>
       {editable && canDelete && (
@@ -85,9 +85,9 @@ function SortableItem({
           disabled={saving}
           onPointerDown={(e) => e.stopPropagation()}
           onClick={onDelete}
-          className="rounded px-1 font-mono text-xs text-ink-soft opacity-0 transition-opacity hover:text-alert group-hover:opacity-100"
+          className="rounded px-1 font-mono text-xs text-muted opacity-0 transition-opacity hover:text-alert group-hover:opacity-100"
         >
-          ✕
+          âœ•
         </button>
       )}
     </li>
@@ -149,7 +149,7 @@ export default function ItineraryPanel({
     if (fromIdx < 0) return;
 
     if (fromDay === toDay) {
-      // arrayMove — aşağı sürüşdürəndə hədəfin ARXASINA düşür (dnd-kit semantikası)
+      // arrayMove â€” aÅŸaÄŸÄ± sÃ¼rÃ¼ÅŸdÃ¼rÉ™ndÉ™ hÉ™dÉ™fin ARXASINA dÃ¼ÅŸÃ¼r (dnd-kit semantikasÄ±)
       const toIdx = toName ? src.indexOf(toName) : src.length - 1;
       if (toIdx < 0 || toIdx === fromIdx) return;
       names.set(fromDay, arrayMove(src, fromIdx, toIdx));
@@ -171,19 +171,19 @@ export default function ItineraryPanel({
   };
 
   const body = (
-    <div className={`divide-y divide-line/60 ${saving ? "pointer-events-none opacity-60" : ""}`}>
+    <div className={`divide-y divide-line ${saving ? "pointer-events-none opacity-60" : ""}`}>
       {visibleDays.map((d) => (
         <div key={d.day} className="px-4 py-3">
-          <h3 className="mb-2 flex items-baseline gap-2 font-display font-semibold">
+          <h3 className="mb-2 flex items-baseline gap-2 font-semibold">
             <span
               className="inline-block h-2.5 w-2.5 rounded-full"
               style={{ background: DAY_COLORS[(d.day - 1) % DAY_COLORS.length] }}
             />
             {t.day} {d.day}
-            <span className="font-mono text-xs font-normal text-ink-soft">{d.date}</span>
+            <span className="font-mono text-xs font-normal text-muted">{d.date}</span>
             {d.weather && (
-              <span className="ml-auto font-mono text-xs font-normal text-ink-soft">
-                {weatherEmoji(d.weather.code)} {d.weather.t_max}°/{d.weather.t_min}°
+              <span className="ml-auto font-mono text-xs font-normal text-muted">
+                {weatherEmoji(d.weather.code)} {d.weather.t_max}Â°/{d.weather.t_min}Â°
               </span>
             )}
           </h3>
@@ -220,7 +220,7 @@ export default function ItineraryPanel({
           aria-selected={selectedDay === 0}
           onClick={() => onSelectDay(0)}
           className={`rounded-md px-3 py-1 font-mono text-xs transition-colors ${
-            selectedDay === 0 ? "bg-cyan text-void" : "text-ink-soft hover:text-ink"
+            selectedDay === 0 ? "bg-ink text-white" : "text-muted hover:text-ink"
           }`}
         >
           {t.all}
@@ -232,7 +232,7 @@ export default function ItineraryPanel({
             aria-selected={selectedDay === d.day}
             onClick={() => onSelectDay(d.day)}
             className={`rounded-md px-3 py-1 font-mono text-xs transition-colors ${
-              selectedDay === d.day ? "text-void" : "text-ink-soft hover:text-ink"
+              selectedDay === d.day ? "text-white" : "text-muted hover:text-ink"
             }`}
             style={
               selectedDay === d.day
@@ -245,9 +245,9 @@ export default function ItineraryPanel({
         ))}
         <button
           onClick={() => window.print()}
-          className="ml-auto rounded-md border border-line px-3 py-1 font-mono text-xs text-ink-soft transition-colors hover:border-cyan/50 hover:text-ink"
+          className="ml-auto rounded-md border border-line px-3 py-1 font-mono text-xs text-muted transition-colors hover:bg-surface hover:text-ink"
         >
-          ⤓ {t.exportPdf}
+          â¤“ {t.exportPdf}
         </button>
       </div>
 
@@ -260,14 +260,14 @@ export default function ItineraryPanel({
       )}
 
       {canEdit && (
-        <div className="border-t border-line px-4 py-1.5 font-mono text-[10px] text-ink-soft">
+        <div className="border-t border-line px-4 py-1.5 font-mono text-[10px] text-muted">
           {t.dragHint}
         </div>
       )}
 
       {itinerary.lodging && (
-        <div className="border-t border-line px-4 py-2 text-right font-mono text-xs text-ink-soft">
-          {t.lodging}: {itinerary.lodging.nights} {t.nights} × {itinerary.lodging.rooms} {t.rooms} ×{" "}
+        <div className="border-t border-line px-4 py-2 text-right font-mono text-xs text-muted">
+          {t.lodging}: {itinerary.lodging.nights} {t.nights} Ã— {itinerary.lodging.rooms} {t.rooms} Ã—{" "}
           {itinerary.lodging.nightly} {currency} = {itinerary.lodging.total} {currency}
         </div>
       )}
@@ -277,11 +277,11 @@ export default function ItineraryPanel({
           {itinerary.total_cost} {currency}
         </strong>
         {rates && (
-          <div className="mt-0.5 text-xs text-ink-soft">
-            ≈{" "}
+          <div className="mt-0.5 text-xs text-muted">
+            â‰ˆ{" "}
             {Object.entries(rates)
               .map(([cur, rate]) => `${(itinerary.total_cost * rate).toFixed(2)} ${cur}`)
-              .join(" · ")}
+              .join(" Â· ")}
           </div>
         )}
       </div>

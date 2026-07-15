@@ -99,10 +99,10 @@ export default function TimelineScrubber({ stops, onScrub, onSettle, onEngage, t
   const current = stops[Math.min(activeIdx, stops.length - 1)];
 
   return (
-    <div className="hud-glass px-4 py-2.5">
-      <div className="mb-1.5 flex items-baseline justify-between gap-3 font-mono text-[9px] tracking-[0.18em] text-ink-soft">
+    <div className="hud-panel px-4 py-2.5">
+      <div className="mb-1.5 flex items-baseline justify-between gap-3 font-mono text-[9px] tracking-[0.18em] text-muted">
         <span>{t.timeline}</span>
-        <span className="truncate normal-case tracking-normal text-[10px] text-cyan">
+        <span className="truncate normal-case tracking-normal text-[10px] text-primary-deep">
           {activeIdx + 1}/{stops.length} · {current.name}
         </span>
       </div>
@@ -117,8 +117,7 @@ export default function TimelineScrubber({ stops, onScrub, onSettle, onEngage, t
             style={{
               left: stops.length < 2 ? 0 : `calc(${(i / (stops.length - 1)) * 100}% + ${HANDLE / 2 - (i / (stops.length - 1)) * HANDLE}px)`,
               background: DAY_COLORS[(s.day - 1) % DAY_COLORS.length],
-              opacity: i === activeIdx ? 1 : 0.45,
-              boxShadow: i === activeIdx ? `0 0 6px ${DAY_COLORS[(s.day - 1) % DAY_COLORS.length]}` : "none",
+              opacity: i === activeIdx ? 1 : 0.4,
             }}
           />
         ))}
@@ -135,8 +134,8 @@ export default function TimelineScrubber({ stops, onScrub, onSettle, onEngage, t
           onDrag={handleDrag}
           onDragEnd={handleDragEnd}
           style={{ x, width: HANDLE, height: HANDLE }}
-          whileDrag={{ scale: 1.15, boxShadow: "0 0 10px rgb(0 242 254 / 0.6)" }}
-          className="absolute top-1/2 -translate-y-1/2 cursor-grab rounded-full border-2 border-cyan bg-void shadow-glow-cyan active:cursor-grabbing"
+          whileDrag={{ scale: 1.15 }}
+          className="absolute top-1/2 -translate-y-1/2 cursor-grab rounded-full border-2 border-primary bg-white shadow-md active:cursor-grabbing"
           role="slider"
           aria-label={t.scrubHint}
           aria-valuemin={1}
