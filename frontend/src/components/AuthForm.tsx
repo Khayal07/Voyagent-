@@ -30,14 +30,14 @@ export default function AuthForm({ onAuthed }: Props) {
   };
 
   const field =
-    "w-full rounded-md border border-line bg-void/60 px-3 py-2 text-sm outline-none focus:border-cyan/60 focus:ring-2 focus:ring-cyan/15";
-  const label = "mb-1 block font-mono text-[11px] tracking-wider text-ink-soft uppercase";
+    "w-full rounded-lg border border-line bg-bg px-3 py-2 text-sm text-ink outline-none transition-colors placeholder:text-muted focus:border-accent focus:ring-2 focus:ring-accent/20";
+  const label = "mb-1 block font-mono text-[11px] tracking-wider text-muted uppercase";
 
   return (
     <div className="mx-auto mt-10 w-full max-w-md">
-      <form onSubmit={handleSubmit} className="hud-glass p-6">
-        <h2 className="font-display text-2xl font-extrabold tracking-tight">{t.authTitle}</h2>
-        <p className="mb-6 mt-1 text-sm text-ink-soft">{t.authSubtitle}</p>
+      <form onSubmit={handleSubmit} className="panel p-6">
+        <h2 className="font-display text-2xl font-semibold tracking-tight">{t.authTitle}</h2>
+        <p className="mb-6 mt-1 text-sm text-muted">{t.authSubtitle}</p>
 
         <div className="space-y-4">
           <div>
@@ -50,7 +50,7 @@ export default function AuthForm({ onAuthed }: Props) {
             <input id="password" type="password" className={field} required minLength={8}
               autoComplete={mode === "login" ? "current-password" : "new-password"}
               value={password} onChange={(e) => setPassword(e.target.value)} />
-            {mode === "register" && <p className="mt-1 text-xs text-ink-soft">{t.passwordHint}</p>}
+            {mode === "register" && <p className="mt-1 text-xs text-muted">{t.passwordHint}</p>}
           </div>
         </div>
 
@@ -58,7 +58,7 @@ export default function AuthForm({ onAuthed }: Props) {
 
         <button
           type="submit" disabled={busy}
-          className="mt-6 w-full rounded-md bg-cyan px-4 py-3 font-display text-base font-semibold text-void transition-shadow hover:shadow-glow-cyan disabled:opacity-50"
+          className="mt-6 w-full rounded-lg bg-primary px-4 py-3 text-base font-semibold text-white transition-colors hover:bg-primary-deep disabled:opacity-50"
         >
           {mode === "login" ? t.login : t.registerAction}
         </button>
@@ -66,7 +66,7 @@ export default function AuthForm({ onAuthed }: Props) {
         <button
           type="button"
           onClick={() => setMode(mode === "login" ? "register" : "login")}
-          className="mt-4 w-full text-center text-sm text-ink-soft hover:text-ink"
+          className="mt-4 w-full text-center text-sm text-muted transition-colors hover:text-ink"
         >
           {mode === "login" ? t.needAccount : t.haveAccount}
         </button>

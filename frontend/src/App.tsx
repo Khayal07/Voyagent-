@@ -109,7 +109,7 @@ export default function App() {
 
   const langSwitcher = (
     <div
-      className="flex overflow-hidden rounded-md border border-line font-mono text-xs"
+      className="flex overflow-hidden rounded-lg border border-line font-mono text-xs"
       role="group"
       aria-label="Language"
     >
@@ -119,7 +119,7 @@ export default function App() {
           onClick={() => setLang(l)}
           aria-pressed={lang === l}
           className={`px-2.5 py-1.5 transition-colors ${
-            lang === l ? "bg-cyan text-void" : "text-ink-soft hover:text-ink"
+            lang === l ? "bg-ink text-white" : "text-muted hover:text-ink"
           }`}
         >
           {l.toUpperCase()}
@@ -132,12 +132,12 @@ export default function App() {
     <LangContext.Provider value={{ lang, setLang }}>
       {trip && itinerary && <PrintableItinerary trip={trip} itinerary={itinerary} />}
       <div className="app-screen mx-auto flex h-screen max-w-[1700px] flex-col px-4 py-5">
-        <header className="relative mb-5 flex items-end justify-between pb-4 after:absolute after:inset-x-0 after:bottom-0 after:h-px after:bg-[linear-gradient(90deg,transparent,rgb(0_242_254/0.5),transparent)]">
+        <header className="mb-5 flex items-end justify-between border-b border-line pb-4">
           <div>
-            <h1 className="font-display text-3xl font-extrabold tracking-tight">
-              Voyagent<span className="text-cyan drop-shadow-[0_0_6px_rgb(0_242_254/0.6)]">.</span>
+            <h1 className="font-display text-3xl font-semibold tracking-tight">
+              Voyagent<span className="text-primary">.</span>
             </h1>
-            <p className="font-mono text-[11px] tracking-[0.25em] text-ink-soft">{t.tagline}</p>
+            <p className="font-mono text-[11px] tracking-[0.25em] text-muted">{t.tagline}</p>
           </div>
           <div className="flex items-center gap-3">
             {langSwitcher}
@@ -153,23 +153,23 @@ export default function App() {
                       setView("myTrips");
                     }
                   }}
-                  className="rounded-md border border-line px-3 py-1.5 text-sm text-ink-soft hover:border-cyan/50 hover:text-ink"
+                  className="rounded-lg border border-line px-3 py-1.5 text-sm text-ink transition-colors hover:bg-surface"
                 >
                   {view === "myTrips" ? t.backToPlanner : t.myTrips}
                 </button>
                 {trip && view === "planner" && (
                   <button
                     onClick={reset}
-                    className="rounded-md border border-line px-3 py-1.5 text-sm text-ink-soft hover:border-cyan/50 hover:text-ink"
+                    className="rounded-lg border border-line px-3 py-1.5 text-sm text-ink transition-colors hover:bg-surface"
                   >
                     {t.newTrip}
                   </button>
                 )}
                 <div className="hidden items-baseline gap-2 sm:flex">
-                  <span className="font-mono text-xs text-ink-soft">{userEmail}</span>
+                  <span className="font-mono text-xs text-muted">{userEmail}</span>
                   <button
                     onClick={logout}
-                    className="text-sm text-ink-soft underline-offset-2 hover:text-ink hover:underline"
+                    className="text-sm text-muted underline-offset-2 transition-colors hover:text-ink hover:underline"
                   >
                     {t.logout}
                   </button>
@@ -180,7 +180,7 @@ export default function App() {
         </header>
 
         {error && (
-          <div className="mb-4 rounded-md border border-alert/40 bg-alert/10 px-4 py-3 text-sm text-alert">
+          <div className="mb-4 rounded-lg border border-alert/40 bg-alert/5 px-4 py-3 text-sm text-alert">
             {error}
           </div>
         )}
