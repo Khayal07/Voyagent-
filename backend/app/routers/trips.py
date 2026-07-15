@@ -1,5 +1,6 @@
 import asyncio
 import json
+import secrets
 import uuid
 
 from fastapi import APIRouter, Depends, HTTPException
@@ -15,7 +16,7 @@ from ..events import bus
 from ..models import AgentMessage, Trip, User
 from ..orchestrator import run_trip_planning
 from ..ratelimit import trip_limiter
-from ..schemas import ItineraryOut, ItineraryUpdate, TripCreate, TripDetail, TripOut
+from ..schemas import ItineraryOut, ItineraryUpdate, ShareOut, TripCreate, TripDetail, TripOut
 
 router = APIRouter(prefix="/api/trips", tags=["trips"])
 
@@ -49,6 +50,41 @@ async def list_trips(
         select(Trip).where(Trip.user_id == user.id).order_by(Trip.created_at.desc())
     )
     return result.scalars().all()
+
+
+# QEYD: /{trip_id}-dən ƏVVƏL elan olunmalıdır ("shared" UUID kimi parse olunmasın)
+@router.get("/shared/{token}", response_model=TripDetail)
+async def get_shared_trip(
+    token: str,
+    session: AsyncSession = Depends(get_session),
+):
+    """Oxu-yalnız public görünüş — auth tələb etmir, yalnız token bilənlər açır."""
+    result = await session.execute(
+        select(Trip)
+        .options(selectinload(Trip.messages), selectinload(Trip.itinerary))
+        .where(Trip.share_token == token)
+    )
+    trip = result.scalar_one_or_none()
+    if trip is None:
+        raise HTTPException(status_code=404, detail="Paylaşma linki etibarsızdır")
+    return trip
+
+
+@router.post("/{trip_id}/share", response_model=ShareOut)
+async def share_trip(
+    trip_id: uuid.UUID,
+    session: AsyncSession = Depends(get_session),
+    user: User = Depends(get_current_user),
+):
+    """Sahib üçün paylaşma tokeni yaradır (idempotent — mövcuddursa eynisini qaytarır)."""
+    result = await session.execute(select(Trip).where(Trip.id == trip_id))
+    trip = result.scalar_one_or_none()
+    if trip is None or trip.user_id != user.id:
+        raise HTTPException(status_code=404, detail="Trip tapılmadı")
+    if not trip.share_token:
+        trip.share_token = secrets.token_urlsafe(12)
+        await session.commit()
+    return ShareOut(token=trip.share_token)
 
 
 @router.get("/{trip_id}", response_model=TripDetail)

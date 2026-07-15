@@ -37,6 +37,7 @@ class Trip(Base):
     must_visit: Mapped[list] = mapped_column(JSONColumn, default=list)
     avoid: Mapped[list] = mapped_column(JSONColumn, default=list)
     pace: Mapped[str] = mapped_column(String(10), default="normal")
+    share_token: Mapped[str | None] = mapped_column(String(32), unique=True, index=True, nullable=True)
     language: Mapped[str] = mapped_column(String(2), default="en")
     status: Mapped[str] = mapped_column(String(20), default="pending")
     created_at: Mapped[datetime] = mapped_column(DateTime(timezone=True), server_default=func.now())

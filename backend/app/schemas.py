@@ -102,6 +102,10 @@ class TripOut(BaseModel):
     model_config = {"from_attributes": True}
 
 
+class ShareOut(BaseModel):
+    token: str
+
+
 class TripDetail(TripOut):
     messages: list[AgentMessageOut] = []
     itinerary: ItineraryOut | None = None
