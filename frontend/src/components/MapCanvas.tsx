@@ -1,11 +1,15 @@
 import type L from "leaflet";
 import { useEffect, useMemo, useRef, useState } from "react";
+import { patchItinerary } from "../api";
 import type { LiveProposal } from "../hooks/useLivePoints";
 import { useT } from "../i18n";
 import { budgetFromItinerary, budgetFromLive } from "../lib/budget";
+import { optimizeForBudget } from "../lib/optimize";
 import type { Phase } from "../streamState";
 import type { Itinerary, Trip } from "../types";
+import ABCompare from "./hud/ABCompare";
 import BudgetGauge from "./hud/BudgetGauge";
+import BudgetSlider from "./hud/BudgetSlider";
 import DayFilterHud from "./hud/DayFilterHud";
 import ItineraryDrawer from "./hud/ItineraryDrawer";
 import TimelineScrubber, { type ScrubStop } from "./hud/TimelineScrubber";
@@ -44,7 +48,69 @@ export default function MapCanvas({
   const fitEnabledRef = useRef(true);
   const [drawerOpen, setDrawerOpen] = useState(false);
   const [playing, setPlaying] = useState(false);
+  const [simActive, setSimActive] = useState(false);
+  const [targetBudget, setTargetBudget] = useState(0);
+  const [applying, setApplying] = useState(false);
+  const [applied, setApplied] = useState(false);
+  const [compareOpen, setCompareOpen] = useState(false);
   const prevPhaseRef = useRef(phase);
+
+  const canSim = phase === "done" && !readOnly && itinerary != null;
+
+  // Simulyasiya "nə olardı" preview-u (deterministik, LLM yox)
+  const preview = useMemo(
+    () => (simActive && itinerary ? optimizeForBudget(itinerary, trip, targetBudget) : null),
+    [simActive, itinerary, trip, targetBudget],
+  );
+  const shown = preview?.itinerary ?? itinerary;
+
+  // Sürgü sərhədləri əsl plana görə sabit qalır (preview-a görə sürüşməsin)
+  const baseAlloc = useMemo(
+    () => (itinerary ? budgetFromItinerary(itinerary, trip) : null),
+    [itinerary, trip],
+  );
+  const simMin = baseAlloc ? Math.round(baseAlloc.lodging + baseAlloc.food) : 0;
+  const simMax = baseAlloc ? Math.max(trip.budget, Math.round(baseAlloc.spent)) : 0;
+
+  // Trip dəyişəndə simulyator sıfırlanır
+  useEffect(() => {
+    setSimActive(false);
+    setCompareOpen(false);
+    setApplied(false);
+  }, [trip.id]);
+
+  const openSim = () => {
+    if (!baseAlloc) return;
+    setTargetBudget(Math.round(baseAlloc.spent));
+    setApplied(false);
+    setPlaying(false);
+    setSimActive(true);
+  };
+  const closeSim = () => {
+    setSimActive(false);
+    setCompareOpen(false);
+    setApplied(false);
+  };
+
+  const applyPlan = async () => {
+    if (!preview?.changed) return;
+    setApplying(true);
+    try {
+      const days = preview.itinerary.days.map((d) => ({
+        day: d.day,
+        items: d.items.map((i) => i.name),
+      }));
+      const updated = await patchItinerary(trip.id, days);
+      onItineraryChange(updated);
+      setApplied(true);
+      setSimActive(false);
+      setCompareOpen(false);
+    } catch (e) {
+      onError(e instanceof Error ? e.message : t.updateFailed);
+    } finally {
+      setApplying(false);
+    }
+  };
 
   // done fazasına keçəndə drawer avtomatik açılır
   useEffect(() => {
@@ -65,10 +131,10 @@ export default function MapCanvas({
     return () => clearTimeout(id);
   }, [visible]);
 
-  // Scrubber üçün xronoloji dayanacaqlar (yekun və ya canlı təklif)
+  // Scrubber üçün xronoloji dayanacaqlar (yekun/preview və ya canlı təklif)
   const stops = useMemo<ScrubStop[]>(() => {
-    if (itinerary) {
-      const days = selectedDay === 0 ? itinerary.days : itinerary.days.filter((d) => d.day === selectedDay);
+    if (shown) {
+      const days = selectedDay === 0 ? shown.days : shown.days.filter((d) => d.day === selectedDay);
       return days.flatMap((d) =>
         d.items
           .filter((i) => i.lat != null && i.lon != null)
@@ -76,13 +142,13 @@ export default function MapCanvas({
       );
     }
     return (live?.points ?? []).map((p) => ({ name: p.name, lat: p.lat, lon: p.lon, day: p.day }));
-  }, [itinerary, live, selectedDay]);
+  }, [shown, live, selectedDay]);
 
   const alloc = useMemo(() => {
-    if (itinerary) return budgetFromItinerary(itinerary, trip);
+    if (shown) return budgetFromItinerary(shown, trip);
     if (live && live.points.length > 0) return budgetFromLive(live, trip);
     return null;
-  }, [itinerary, live, trip]);
+  }, [shown, live, trip]);
 
   if (!cityCenter) {
     return (
@@ -98,7 +164,7 @@ export default function MapCanvas({
       <div className="absolute inset-0">
         <MapView
           center={cityCenter}
-          itinerary={itinerary}
+          itinerary={shown}
           selectedDay={selectedDay}
           currency={trip.currency}
           livePoints={live?.points}
@@ -111,17 +177,38 @@ export default function MapCanvas({
 
       {/* HUD qatı — Leaflet pane-lərinin (max 700) üstündə */}
       <div className="pointer-events-none absolute inset-0 z-[1000]">
-        {itinerary && (
-          <div className="pointer-events-auto absolute left-3 top-3">
-            <DayFilterHud days={itinerary.days} selectedDay={selectedDay} onSelectDay={onSelectDay} />
-          </div>
-        )}
-
-        {alloc && (
-          <div className={`pointer-events-auto absolute left-3 ${itinerary ? "top-16" : "top-3"}`}>
-            <BudgetGauge alloc={alloc} currency={trip.currency} />
-          </div>
-        )}
+        {/* Sol sütun: gün filtri · büdcə · simulyator */}
+        <div className="pointer-events-auto absolute left-3 top-3 flex flex-col gap-2">
+          {shown && (
+            <DayFilterHud days={shown.days} selectedDay={selectedDay} onSelectDay={onSelectDay} />
+          )}
+          {alloc && <BudgetGauge alloc={alloc} currency={trip.currency} />}
+          {canSim &&
+            (simActive ? (
+              <BudgetSlider
+                min={simMin}
+                max={simMax}
+                value={targetBudget}
+                spent={alloc?.spent ?? 0}
+                currency={trip.currency}
+                removedCount={preview?.removed.length ?? 0}
+                changed={preview?.changed ?? false}
+                applying={applying}
+                applied={applied}
+                onChange={setTargetBudget}
+                onApply={applyPlan}
+                onReset={closeSim}
+                onCompare={() => setCompareOpen(true)}
+              />
+            ) : (
+              <button
+                onClick={openSim}
+                className="hud-panel px-3 py-2 text-left font-mono text-[11px] uppercase tracking-wider text-primary-deep transition-colors hover:bg-surface active:translate-y-px"
+              >
+                ⚖ {t.budgetSim}
+              </button>
+            ))}
+        </div>
 
         {stops.length > 1 && phase !== "streaming" && (
           <div className="pointer-events-auto absolute bottom-3 left-3">
@@ -150,18 +237,29 @@ export default function MapCanvas({
           </div>
         )}
 
-        {itinerary && (
+        {shown && (
           <ItineraryDrawer
             open={drawerOpen}
             onToggle={setDrawerOpen}
-            itinerary={itinerary}
+            itinerary={shown}
             currency={trip.currency}
             selectedDay={selectedDay}
             onSelectDay={onSelectDay}
             tripId={trip.id}
-            editable={phase === "done" && !readOnly}
+            editable={phase === "done" && !readOnly && !simActive}
             onChange={onItineraryChange}
             onError={onError}
+          />
+        )}
+
+        {itinerary && preview && (
+          <ABCompare
+            open={compareOpen}
+            base={itinerary}
+            sim={preview.itinerary}
+            removed={preview.removed}
+            trip={trip}
+            onClose={() => setCompareOpen(false)}
           />
         )}
       </div>
