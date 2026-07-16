@@ -1,5 +1,8 @@
 import type { AgentMsg, AuthResponse, Itinerary, Trip, TripDetail, TripInput } from "./types";
 
+// QEYD: token localStorage-də saxlanılır — SSE EventSource header qoya bilmədiyi üçün token
+// query param ilə göndərilməli, bu da httpOnly cookie keçidini çətinləşdirir. XSS riski React
+// auto-escaping və raw HTML inyeksiyası olmayan kod sayəsində qəbul edilən qalıq risk kimi qalır.
 const TOKEN_KEY = "voyagent-token";
 const EMAIL_KEY = "voyagent-email";
 
@@ -109,8 +112,15 @@ export function openTripStream(tripId: string, handlers: StreamHandlers): () => 
   });
   es.addEventListener("error", (e) => {
     if (e instanceof MessageEvent && e.data) {
+      // Server tərəfli "error" hadisəsi (planlaşdırma uğursuz)
       handlers.onError(JSON.parse(e.data).detail ?? "Naməlum xəta");
       es.close();
+      return;
+    }
+    // Datasız error = bağlantı düşdü (şəbəkə/401). EventSource CONNECTING-də avto-reconnect edir;
+    // yalnız qapanmış vəziyyətdə istifadəçiyə bildiririk ki, ekran səssizcə donmasın.
+    if (es.readyState === EventSource.CLOSED) {
+      handlers.onError("Bağlantı kəsildi — yenidən cəhd edin");
     }
   });
 

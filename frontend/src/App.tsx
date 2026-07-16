@@ -36,8 +36,8 @@ export default function App() {
           itinerary: detail.itinerary,
         });
       })
-      .catch(() => setError(translations[getInitialLang()].shareInvalid));
-  }, [shareToken]);
+      .catch(() => setError(translations[lang].shareInvalid));
+  }, [shareToken, lang]);
 
   useEffect(() => {
     localStorage.setItem("voyagent-lang", lang);

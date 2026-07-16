@@ -1,4 +1,9 @@
-"""Trip-lərə görə in-memory event bus: orchestrator publish edir, SSE endpoint subscribe olur."""
+"""Trip-lərə görə in-memory event bus: orchestrator publish edir, SSE endpoint subscribe olur.
+
+DİQQƏT: subscriber-lər proses-daxilidir. Tətbiq YALNIZ tək worker/replica ilə işləməlidir —
+çox worker-də A worker-inə qoşulan SSE client B worker-də publish olunan hadisələri görməz.
+Üfüqi miqyas lazım olsa, bus Redis pub/sub-a köçürülməlidir.
+"""
 
 import asyncio
 from collections import defaultdict

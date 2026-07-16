@@ -43,3 +43,13 @@ async def test_shared_view_public_no_auth(client, session):
 async def test_shared_view_bad_token_404(client):
     resp = await client.get("/api/trips/shared/yalnis-token")
     assert resp.status_code == 404
+
+
+async def test_shared_view_rate_limited(client):
+    """Public endpoint token enumerasiyasına qarşı IP başına məhdudlaşdırılır."""
+    from app.ratelimit import share_limiter
+
+    statuses = set()
+    for _ in range(share_limiter.limit + 5):
+        statuses.add((await client.get("/api/trips/shared/xxx")).status_code)
+    assert 429 in statuses

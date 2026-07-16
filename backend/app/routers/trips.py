@@ -2,10 +2,12 @@ import asyncio
 import json
 import secrets
 import uuid
+from collections import Counter
 
-from fastapi import APIRouter, Depends, HTTPException
+from fastapi import APIRouter, Depends, HTTPException, Request
 from fastapi.responses import StreamingResponse
 from sqlalchemy import select
+from sqlalchemy.exc import IntegrityError
 from sqlalchemy.ext.asyncio import AsyncSession
 from sqlalchemy.orm import selectinload
 
@@ -15,10 +17,13 @@ from ..db import get_session
 from ..events import bus
 from ..models import AgentMessage, Trip, User
 from ..orchestrator import run_trip_planning
-from ..ratelimit import trip_limiter
+from ..ratelimit import limit_share, trip_limiter
 from ..schemas import ItineraryOut, ItineraryUpdate, ShareOut, TripCreate, TripDetail, TripOut
 
 router = APIRouter(prefix="/api/trips", tags=["trips"])
+
+# Fire-and-forget task-lar GC ilə yarımçıq öldürülməsin deyə güclü referans saxlanılır
+_background_tasks: set[asyncio.Task] = set()
 
 
 def sse(event_type: str, data: dict) -> str:
@@ -37,7 +42,9 @@ async def create_trip(
     session.add(trip)
     await session.commit()
     await session.refresh(trip)
-    asyncio.create_task(run_trip_planning(trip.id))
+    task = asyncio.create_task(run_trip_planning(trip.id))
+    _background_tasks.add(task)
+    task.add_done_callback(_background_tasks.discard)
     return trip
 
 
@@ -56,9 +63,11 @@ async def list_trips(
 @router.get("/shared/{token}", response_model=TripDetail)
 async def get_shared_trip(
     token: str,
+    request: Request,
     session: AsyncSession = Depends(get_session),
 ):
     """Oxu-yalnız public görünüş — auth tələb etmir, yalnız token bilənlər açır."""
+    limit_share(request)  # public endpoint — token enumerasiyasına qarşı IP limiti
     result = await session.execute(
         select(Trip)
         .options(selectinload(Trip.messages), selectinload(Trip.itinerary))
@@ -82,8 +91,17 @@ async def share_trip(
     if trip is None or trip.user_id != user.id:
         raise HTTPException(status_code=404, detail="Trip tapılmadı")
     if not trip.share_token:
-        trip.share_token = secrets.token_urlsafe(12)
-        await session.commit()
+        # Toqquşma astronomik dərəcədə az ehtimallıdır, amma yenə də təkrar cəhd edilir
+        for _ in range(3):
+            trip.share_token = secrets.token_urlsafe(12)
+            try:
+                await session.commit()
+                break
+            except IntegrityError:
+                await session.rollback()
+                await session.refresh(trip)
+        else:
+            raise HTTPException(status_code=500, detail="Paylaşma tokeni yaradıla bilmədi")
     return ShareOut(token=trip.share_token)
 
 
@@ -131,9 +149,18 @@ async def update_itinerary(
     if {d.day for d in data.days} != set(stored_days):
         raise HTTPException(status_code=422, detail="Gün dəsti mövcud planla üst-üstə düşmür")
 
-    # Yalnız planda artıq olan item-lar qəbul edilir — kənardan item inject etmək mümkün deyil
-    pool = {i["name"].casefold(): i for d in itinerary.days for i in d["items"]}
-    used: set[str] = set()
+    # Yalnız planda artıq olan item-lar qəbul edilir — kənardan item inject etmək mümkün deyil.
+    # Eyni yer birdən çox gündə ola bilər, ona görə ad başına icazəli say (Counter) izlənir;
+    # bu, günlər arası daşımağa da imkan verir, saxta təkrarı isə bloklayır.
+    pool: dict[str, dict] = {}
+    available: Counter = Counter()
+    for d in itinerary.days:
+        for i in d["items"]:
+            key = i["name"].casefold()
+            pool[key] = i
+            available[key] += 1
+
+    used: Counter = Counter()
     new_days, weather = [], []
     for d in sorted(data.days, key=lambda x: x.day):
         items = []
@@ -141,9 +168,9 @@ async def update_itinerary(
             key = name.casefold()
             if key not in pool:
                 raise HTTPException(status_code=422, detail=f"Naməlum yer: {name}")
-            if key in used:
+            used[key] += 1
+            if used[key] > available[key]:
                 raise HTTPException(status_code=422, detail=f"Təkrarlanan yer: {name}")
-            used.add(key)
             items.append(pool[key])
         new_days.append({"day": d.day, "items": items})
         weather.append(stored_days[d.day].get("weather"))

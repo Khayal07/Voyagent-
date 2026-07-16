@@ -42,13 +42,22 @@ def reset_all() -> None:
 
 
 def client_ip(request: Request) -> str:
+    # Reverse-proxy arxasında real IP X-Forwarded-For-un ilk elementindədir
+    xff = request.headers.get("x-forwarded-for")
+    if xff:
+        return xff.split(",")[0].strip()
     return request.client.host if request.client else "unknown"
 
 
-# Limitlər: auth IP başına, trip yaradılması istifadəçi başına
+# Limitlər: auth IP başına, trip yaradılması istifadəçi başına, share IP başına
 auth_limiter = RateLimiter(limit=10, window_s=300)
 trip_limiter = RateLimiter(limit=10, window_s=3600)
+share_limiter = RateLimiter(limit=30, window_s=60)
 
 
 def limit_auth(request: Request) -> None:
     auth_limiter.check(client_ip(request))
+
+
+def limit_share(request: Request) -> None:
+    share_limiter.check(client_ip(request))

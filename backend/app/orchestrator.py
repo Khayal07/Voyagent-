@@ -59,6 +59,12 @@ async def set_status(session: AsyncSession, trip: Trip, status: str) -> None:
 
 
 MAX_KM_FROM_CENTER = 80
+RAIN_THRESHOLD = 50
+
+
+def is_rainy(w: dict | None) -> bool:
+    """Günün yağışlı sayılması üçün tək mənbə (precip faizi)."""
+    return bool(w) and (w.get("precip") or 0) >= RAIN_THRESHOLD
 
 
 def _apply_poi_coords(days: list[dict], pois: dict[str, list[dict]]) -> None:
@@ -111,12 +117,19 @@ async def run_trip_planning(trip_id: uuid.UUID) -> None:
             return
         try:
             await _run(session, trip)
-        except Exception as e:
+        except Exception:
             logger.exception("Planlaşdırma xətası (trip=%s)", trip_id)
-            await session.rollback()
-            await emit(session, trip_id, "system", 0, "info", msg(trip.language, "stopped", error=str(e)[:200]))
-            await set_status(session, trip, "failed")
-            await bus.publish(str(trip_id), "error", {"detail": str(e)[:200]})
+            # Xəta bildirişi özü də çökə bilər (bağlantı itib) — status "failed" hər halda qoyulmalıdır
+            try:
+                await session.rollback()
+                await emit(session, trip_id, "system", 0, "info", msg(trip.language, "stopped_generic"))
+            except Exception:
+                logger.exception("Xəta mesajı yazıla bilmədi (trip=%s)", trip_id)
+            try:
+                await set_status(session, trip, "failed")
+            except Exception:
+                logger.exception("Status 'failed' yazıla bilmədi (trip=%s)", trip_id)
+            await bus.publish(str(trip_id), "error", {"detail": "planning_failed"})
 
 
 async def _run(session: AsyncSession, trip: Trip) -> None:
@@ -148,7 +161,7 @@ async def _run(session: AsyncSession, trip: Trip) -> None:
             for i, w in enumerate(weather) if w
         )
         await emit(session, trip_id, "system", 0, "info", msg(lang, "weather", city=trip.city, parts=parts))
-    rainy = [i + 1 for i, w in enumerate(weather) if w and (w.get("precip") or 0) >= 50]
+    rainy = [i + 1 for i, w in enumerate(weather) if is_rainy(w)]
     weather_hint = (
         "Rain likely on day(s) " + ", ".join(map(str, rainy)) + " — prefer indoor activities those days.\n"
         if rainy else ""
@@ -164,7 +177,7 @@ async def _run(session: AsyncSession, trip: Trip) -> None:
     _apply_poi_coords(days, pois)
     await _geocode_days(days, trip.city, city_coords)
 
-    # Negotiation dövrəsi
+    # Negotiation dövrəsi: MAX_ROUNDS danışıq + 1 yekun yoxlama raundu
     for round_no in range(1, MAX_ROUNDS + 2):
         budget_ok, total, budget_objs = budget.check(trip, days, lodging=lodging)
         if budget_ok:

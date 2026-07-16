@@ -14,11 +14,12 @@ from .models import User
 
 
 def hash_password(password: str) -> str:
-    return bcrypt.hashpw(password.encode(), bcrypt.gensalt()).decode()
+    # bcrypt yalnız ilk 72 baytı nəzərə alır — sükutla kəsilməsin deyə açıq kəsirik
+    return bcrypt.hashpw(password.encode()[:72], bcrypt.gensalt()).decode()
 
 
 def verify_password(password: str, password_hash: str) -> bool:
-    return bcrypt.checkpw(password.encode(), password_hash.encode())
+    return bcrypt.checkpw(password.encode()[:72], password_hash.encode())
 
 
 def create_token(user_id: uuid.UUID) -> str:

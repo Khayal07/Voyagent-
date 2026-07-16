@@ -6,6 +6,7 @@ from ..models import Trip
 from .base import AgentError, ask_json
 
 VALID_CATEGORIES = {"history", "nature", "food", "nightlife", "art", "shopping", "other"}
+MAX_ITEMS_PER_DAY = 4  # LLM cavabında gün başına qəbul olunan maksimum aktivlik
 
 
 def _normalize_item(raw: dict) -> dict | None:
@@ -34,7 +35,8 @@ def normalize_days(raw_days: list, num_days: int) -> list[dict]:
     days = []
     for d in range(1, num_days + 1):
         found = next((x for x in raw_days if int(x.get("day", 0) or 0) == d), None)
-        items = [i for i in ((_normalize_item(r) for r in (found or {}).get("items", [])[:4])) if i]
+        raw_items = (found or {}).get("items", [])[:MAX_ITEMS_PER_DAY]
+        items = [i for i in (_normalize_item(r) for r in raw_items) if i]
         days.append({"day": d, "items": items})
     if not any(d["items"] for d in days):
         raise AgentError("Interest Agent heç bir aktivlik qaytarmadı")

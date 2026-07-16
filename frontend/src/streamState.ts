@@ -45,6 +45,8 @@ export function streamReducer(state: StreamState, action: StreamAction): StreamS
       return { ...state, itinerary: action.itinerary };
     case "reset":
       return initialStreamState;
+    default:
+      return state;
   }
 }
 

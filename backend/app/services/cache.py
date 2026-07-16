@@ -12,6 +12,10 @@ logger = logging.getLogger("voyagent.cache")
 MISS = object()
 
 
+# L1 yaddaş cache-i limitsiz böyüməsin deyə sadə FIFO tavanı
+MEM_MAX = 2000
+
+
 class KVCache:
     def __init__(self, namespace: str, persist: bool = True):
         self.ns = namespace
@@ -20,6 +24,11 @@ class KVCache:
 
     def _k(self, key: str) -> str:
         return f"{self.ns}:{key}"[:255]
+
+    def _remember(self, k: str, value: Any) -> None:
+        if k not in self._mem and len(self._mem) >= MEM_MAX:
+            self._mem.pop(next(iter(self._mem)))  # ən köhnə girişi at
+        self._mem[k] = value
 
     async def get(self, key: str) -> Any:
         k = self._k(key)
@@ -38,12 +47,12 @@ class KVCache:
             return MISS
         if row is None:
             return MISS
-        self._mem[k] = row.value
+        self._remember(k, row.value)
         return row.value
 
     async def set(self, key: str, value: Any) -> None:
         k = self._k(key)
-        self._mem[k] = value
+        self._remember(k, value)
         if not self.persist:
             return
         try:

@@ -48,9 +48,11 @@ class TripCreate(BaseModel):
             raise ValueError("end_date start_date-dən əvvəl ola bilməz")
         if (self.end_date - self.start_date).days + 1 > MAX_TRIP_DAYS:
             raise ValueError(f"Maksimum {MAX_TRIP_DAYS} günlük səyahət dəstəklənir")
-        # Yer siyahıları: boşları at, hər adı 80 simvola kəs
+        # Yer/maraq siyahıları: boşları at, hər adı 80 simvola kəs (POI kateqoriya axtarışı client
+        # təmizliyindən asılı qalmasın)
         self.must_visit = [s.strip()[:80] for s in self.must_visit if s and s.strip()]
         self.avoid = [s.strip()[:80] for s in self.avoid if s and s.strip()]
+        self.interests = [s.strip()[:80] for s in self.interests if s and s.strip()]
         return self
 
 

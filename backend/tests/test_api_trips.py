@@ -216,6 +216,37 @@ async def test_patch_validation_422(client, session):
         assert resp.status_code == 422, body
 
 
+async def test_patch_allows_same_place_on_two_days(client, session):
+    """Eyni yer planda iki gündə varsa, təkrar saxlanışda 422 olmamalıdır (regresiya)."""
+    headers = await register_user(client)
+    user_id = await owner_id(client, headers)
+    trip = Trip(
+        city="Rome", start_date=date(2026, 7, 20), end_date=date(2026, 7, 21),
+        budget=500.0, currency="USD", travelers=1, interests=[], language="en",
+        status="done", user_id=user_id,
+    )
+    session.add(trip)
+    await session.commit()
+    itin = Itinerary(
+        trip_id=trip.id,
+        days=[
+            {"day": 1, "date": "2026-07-20", "weather": None, "items": [sched_item("Trevi", 5.0)]},
+            {"day": 2, "date": "2026-07-21", "weather": None, "items": [sched_item("Trevi", 5.0)]},
+        ],
+        total_cost=90.0, lodging=LODGING,
+    )
+    session.add(itin)
+    await session.commit()
+
+    body = {"days": [{"day": 1, "items": ["Trevi"]}, {"day": 2, "items": ["Trevi"]}]}
+    resp = await client.patch(f"/api/trips/{trip.id}/itinerary", json=body, headers=headers)
+    assert resp.status_code == 200
+    # Eyni adı ikidən çox istifadə etmək (mövcud sayı aşmaq) yenə də bloklanır
+    over = {"days": [{"day": 1, "items": ["Trevi", "Trevi"]}, {"day": 2, "items": ["Trevi"]}]}
+    resp = await client.patch(f"/api/trips/{trip.id}/itinerary", json=over, headers=headers)
+    assert resp.status_code == 422
+
+
 async def test_patch_ownership_and_status(client, session):
     headers_a = await register_user(client, email="a@example.com")
     headers_b = await register_user(client, email="b@example.com")
