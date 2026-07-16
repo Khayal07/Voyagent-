@@ -57,13 +57,32 @@ If the OpenAI call fails (rate limit, key error, timeout), the system automatica
 2. Press **"Plan my route"**
 3. Watch the agents negotiate live in the right panel — proposals, objections (`OBJECTION`), approvals (`APPROVED`) and the final decision
 4. Each day's route is drawn on the map in its own colour; click the day tabs to focus
-5. Switch the interface language (EN/AZ) in the header — agents reply in the selected language
+5. Play the route animation, drag the timeline, or open the **budget simulator** to explore cheaper variants (see [Interactive map & itinerary](#interactive-map--itinerary))
+6. Switch the interface language (EN/AZ) in the header — agents reply in the selected language
+
+## Interactive map & itinerary
+
+Once the negotiation finishes, the map turns into a small mission-control HUD. Everything below is deterministic and runs client-side — **no extra LLM calls**:
+
+- **Day filter** — colour-coded chips focus a single day or show all.
+- **Budget allocation gauge** — a radial breakdown of lodging / food / fun vs. reserve; turns red when over budget.
+- **Mission timeline** — drag the scrubber to fly the camera along the route stop by stop.
+- **Live route animation** — press **Play route** and a marker travels the selected day's path while the trail draws behind it.
+- **Budget simulator** — a "what-if" slider. As you tighten the budget, the plan live-drops its most expensive non-essential stops (food and lodging are kept, and every day keeps at least one stop). **Apply** persists the trimmed plan via the validated itinerary endpoint; **A/B** opens a side-by-side comparison of the current vs. simulated plan (cost delta + removed places).
+- **Drag & drop editing** — reorder or remove stops in the itinerary drawer; times recalculate automatically.
+- **Read-only share** — the owner mints a token; anyone with `/?share=TOKEN` gets a view-only replay (no auth, no editing).
+
+The budget simulator and A/B comparison never invent new places — they only trim from the already-approved itinerary, so applying a variant reuses the same server-side validation as manual drag & drop.
 
 ## API
 
 - `POST /api/trips` — create a new trip request (planning starts in the background)
 - `GET /api/trips/{id}/stream` — SSE: agent messages in real time
 - `GET /api/trips/{id}` — trip + all messages + final itinerary
+- `PATCH /api/trips/{id}/itinerary` — reorder/remove existing stops (deterministic reschedule, no LLM); used by drag & drop and the budget simulator's **Apply**
+- `POST /api/trips/{id}/share` — mint (or return) a read-only share token for the owner
+- `GET /api/trips/shared/{token}` — public read-only trip view (no auth, IP rate-limited)
+- `GET /api/rates?base=...` — public currency rates for the share view
 - `GET /health`, `GET /debug/llm` — service checks
 
 ## Project structure
@@ -72,11 +91,19 @@ If the OpenAI call fails (rate limit, key error, timeout), the system automatica
 backend/app/
 ├── agents/          # interest, budget, logistics, planner
 ├── llm/             # call_llm() + fallback, prompts and message templates
-├── services/        # Nominatim geocoding (cache + rate limit)
-├── routers/         # trip API + SSE
-└── orchestrator.py  # negotiation loop
+├── services/        # geocoding, POI, weather, rates (cache + rate limit)
+├── routers/         # trips API + SSE, auth, rates
+├── orchestrator.py  # negotiation loop
+├── ratelimit.py     # per-user trip limit + share IP limit
+└── auth.py          # JWT auth
 frontend/src/
-├── components/      # TripForm, AgentChat, MapView, ItineraryPanel
+├── components/
+│   ├── hud/         # DayFilterHud, BudgetGauge, BudgetSlider, ABCompare,
+│   │                #   TimelineScrubber, ItineraryDrawer
+│   ├── warroom/     # live agent negotiation panels
+│   ├── MapView.tsx  # Leaflet map + route animation (RoutePlayer)
+│   └── MapCanvas.tsx# map + HUD orchestration
+├── lib/             # budget.ts (allocation), optimize.ts (budget simulator)
 ├── i18n.ts          # EN/AZ translations
 └── api.ts           # fetch + EventSource
 ```
