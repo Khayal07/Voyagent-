@@ -43,6 +43,7 @@ export default function MapCanvas({
   const mapRef = useRef<L.Map | null>(null);
   const fitEnabledRef = useRef(true);
   const [drawerOpen, setDrawerOpen] = useState(false);
+  const [playing, setPlaying] = useState(false);
   const prevPhaseRef = useRef(phase);
 
   // done fazasına keçəndə drawer avtomatik açılır
@@ -51,9 +52,10 @@ export default function MapCanvas({
     prevPhaseRef.current = phase;
   }, [phase]);
 
-  // Gün filtri dəyişəndə FitBounds yenidən aktivləşir
+  // Gün filtri dəyişəndə FitBounds yenidən aktivləşir və animasiya dayanır
   useEffect(() => {
     fitEnabledRef.current = true;
+    setPlaying(false);
   }, [selectedDay, trip.id]);
 
   // display:none-dan çıxanda (mobil tab) Leaflet konteyner ölçüsünü yenidən oxumalıdır
@@ -102,6 +104,8 @@ export default function MapCanvas({
           livePoints={live?.points}
           mapRef={mapRef}
           fitEnabledRef={fitEnabledRef}
+          playing={playing}
+          onPlayEnd={() => setPlaying(false)}
         />
       </div>
 
@@ -116,6 +120,19 @@ export default function MapCanvas({
         {alloc && (
           <div className={`pointer-events-auto absolute left-3 ${itinerary ? "top-16" : "top-3"}`}>
             <BudgetGauge alloc={alloc} currency={trip.currency} />
+          </div>
+        )}
+
+        {stops.length > 1 && phase !== "streaming" && (
+          <div className="pointer-events-auto absolute bottom-3 left-3">
+            <button
+              onClick={() => setPlaying((p) => !p)}
+              aria-pressed={playing}
+              className="hud-panel flex items-center gap-2 px-3 py-2 font-mono text-[11px] uppercase tracking-wider text-primary-deep transition-colors hover:bg-surface active:translate-y-px"
+            >
+              <span aria-hidden>{playing ? "■" : "▶"}</span>
+              {playing ? t.stopRoute : t.playRoute}
+            </button>
           </div>
         )}
 

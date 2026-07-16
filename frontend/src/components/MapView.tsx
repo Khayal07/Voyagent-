@@ -1,4 +1,5 @@
 import L from "leaflet";
+import { useReducedMotion } from "motion/react";
 import { useEffect, useMemo, useRef, useState, type RefObject } from "react";
 import { MapContainer, Marker, Polyline, Popup, TileLayer, Tooltip, useMap } from "react-leaflet";
 import { useT } from "../i18n";
@@ -41,6 +42,82 @@ function liveIcon(isNew: boolean) {
   });
 }
 
+// Marşrutu "gəzən" canlı marker — nəbz halqalı oxra nöqtə
+function travelerIcon() {
+  const html =
+    `<div class="route-traveler"><span class="route-traveler-ring"></span>` +
+    `<span class="route-traveler-dot"></span></div>`;
+  return L.divIcon({ className: "", html, iconSize: [22, 22], iconAnchor: [11, 11] });
+}
+
+const TRAVELER_ICON = travelerIcon();
+const SEGMENT_MS = 850; // hər dayanacaqlar arası keçid müddəti
+
+// Marker-i marşrut boyunca ardıcıl dayanacaqlar arasında animasiya edir;
+// arxada "keçilən yol" polilaynı böyüyür. reduced-motion-da dərhal sona atır.
+function RoutePlayer({
+  points,
+  color,
+  playing,
+  onEnd,
+}: {
+  points: [number, number][];
+  color: string;
+  playing: boolean;
+  onEnd: () => void;
+}) {
+  const reduced = useReducedMotion();
+  const [pos, setPos] = useState<[number, number] | null>(null);
+  const [traveled, setTraveled] = useState<[number, number][]>([]);
+  const rafRef = useRef(0);
+
+  useEffect(() => {
+    if (!playing || points.length < 2) return;
+    if (reduced) {
+      setTraveled(points);
+      setPos(points[points.length - 1]);
+      const id = setTimeout(onEnd, 400);
+      return () => clearTimeout(id);
+    }
+    let seg = 0;
+    let start = performance.now();
+    setTraveled([points[0]]);
+    setPos(points[0]);
+    const step = (now: number) => {
+      const a = points[seg];
+      const b = points[seg + 1];
+      const frac = Math.min(1, (now - start) / SEGMENT_MS);
+      setPos([a[0] + (b[0] - a[0]) * frac, a[1] + (b[1] - a[1]) * frac]);
+      if (frac >= 1) {
+        seg += 1;
+        setTraveled(points.slice(0, seg + 1));
+        start = now;
+        if (seg >= points.length - 1) {
+          onEnd();
+          return;
+        }
+      }
+      rafRef.current = requestAnimationFrame(step);
+    };
+    rafRef.current = requestAnimationFrame(step);
+    return () => cancelAnimationFrame(rafRef.current);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [playing, points, reduced]);
+
+  if (!playing || !pos) return null;
+  return (
+    <>
+      {traveled.length > 1 && (
+        <Polyline
+          positions={traveled}
+          pathOptions={{ color, weight: 5, opacity: 0.9 }}
+        />
+      )}
+      <Marker position={pos} icon={TRAVELER_ICON} interactive={false} zIndexOffset={1000} />
+    </>
+  );
+}
+
 function FitBounds({
   points,
   enabledRef,
@@ -69,6 +146,8 @@ interface Props {
   livePoints?: LivePoint[] | null;
   mapRef?: RefObject<L.Map | null>;
   fitEnabledRef?: RefObject<boolean>;
+  playing?: boolean; // marşrut animasiyası oynayır
+  onPlayEnd?: () => void;
 }
 
 export default function MapView({
@@ -79,6 +158,8 @@ export default function MapView({
   livePoints,
   mapRef,
   fitEnabledRef,
+  playing = false,
+  onPlayEnd,
 }: Props) {
   const t = useT();
   const days = itinerary?.days ?? [];
@@ -182,6 +263,12 @@ export default function MapView({
             </div>
           );
         })}
+        <RoutePlayer
+          points={focusPoints}
+          color={DAY_COLORS[(Math.max(1, selectedDay) - 1) % DAY_COLORS.length]}
+          playing={playing && focusPoints.length > 1}
+          onEnd={() => onPlayEnd?.()}
+        />
         <FitBounds
           points={focusPoints.length > 0 ? focusPoints : [center]}
           enabledRef={fitEnabledRef}
