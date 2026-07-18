@@ -47,7 +47,7 @@ Backend API docs: http://localhost:8001/docs
 | `GEOAPIFY_API_KEY` | Optional. Real POI candidates from [Geoapify Places](https://www.geoapify.com/) (free tier: 3,000 credits/day). If empty, the system falls back to LLM knowledge + Nominatim geocoding. |
 | `JWT_SECRET` | Secret for signing auth tokens. **Override the default with a long random string.** |
 
-> **Note (schema changes):** the project uses `Base.metadata.create_all` (no migration tool). After pulling a version that changes the DB schema (e.g. the auth update), reset the volume once: `docker compose down -v && docker compose up --build`.
+> **Note (schema changes):** the project uses Alembic migrations, applied automatically on backend startup (`run_migrations()`). Pulling a version with schema changes needs no manual reset — just `docker compose up --build`.
 
 If the OpenAI call fails (rate limit, key error, timeout), the system automatically switches to OpenRouter — the switch is logged transparently both in the backend log and in the agent chat in the UI.
 
